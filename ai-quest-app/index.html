@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Content Quest - 資産構築RPG</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="fa-solid fa-dragon"></i>
+                <h2>AI Quest</h2>
+            </div>
+
+            <div class="user-stats">
+                <div class="level-info">
+                    <span class="level-badge">Lv. <span id="user-level">1</span></span>
+                    <span class="title" id="user-title">見習い錬金術師</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="exp-bar" style="width: 0%;"></div>
+                </div>
+                <div class="exp-text">EXP: <span id="current-exp">0</span> / <span id="next-level-exp">100</span></div>
+
+                <div class="stamina-info mt-3">
+                    <span>⚡ スタミナ (生成回数):</span>
+                    <span id="stamina-count">3</span>/3
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-target="quest-board"><i class="fa-solid fa-scroll"></i> クエストボード</a>
+                <a href="#" class="nav-item" data-target="alchemy-forge"><i class="fa-solid fa-flask"></i> コンテンツ錬成</a>
+                <a href="#" class="nav-item" data-target="report-guild"><i class="fa-solid fa-chart-line"></i> 成果報告 (EXP獲得)</a>
+                <a href="#" class="nav-item premium-lock" data-target="premium-feature"><i class="fa-solid fa-eye"></i> ライバル偵察 <i class="fa-solid fa-lock text-gold"></i></a>
+                <a href="#" class="nav-item premium-lock" data-target="premium-feature"><i class="fa-solid fa-robot"></i> 完全自動化 <i class="fa-solid fa-lock text-gold"></i></a>
+                <a href="#" class="nav-item" data-target="settings"><i class="fa-solid fa-gear"></i> 設定</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Quest Board Section -->
+            <section id="quest-board" class="content-section active">
+                <header class="section-header">
+                    <h1>本日のクエスト</h1>
+                    <p>AIが選んだ今日のテーマでコンテンツを作成し、経験値を稼ごう！</p>
+                </header>
+                <div class="quest-card">
+                    <div class="quest-type badge">デイリークエスト</div>
+                    <h2 id="daily-quest-title">...読み込み中...</h2>
+                    <p id="daily-quest-desc">...</p>
+                    <button class="btn btn-primary" id="btn-start-quest">このクエストに挑戦する</button>
+                </div>
+            </section>
+
+            <!-- Alchemy Forge Section (Generation) -->
+            <section id="alchemy-forge" class="content-section">
+                <header class="section-header">
+                    <h1>コンテンツ錬成</h1>
+                    <p>AIの力を使って、高品質な記事やSNSポストを生成します。</p>
+                </header>
+                <div class="forge-container">
+                    <div class="forge-controls">
+                        <div class="form-group">
+                            <label>ターゲット層</label>
+                            <select id="target-audience">
+                                <option value="副業初心者">副業初心者</option>
+                                <option value="学生">学生</option>
+                                <option value="会社員">会社員</option>
+                                <option value="主婦">主婦</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>トーン＆マナー</label>
+                            <select id="content-tone">
+                                <option value="親しみやすい">親しみやすい・絵文字多め</option>
+                                <option value="専門的">専門的・説得力がある</option>
+                                <option value="情熱的">情熱的・背中を押す</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>キーワード / テーマ</label>
+                            <input type="text" id="content-keyword" placeholder="例: 最新のAIツール, おすすめの副業">
+                        </div>
+                        <div class="form-group">
+                            <label>プラットフォーム</label>
+                            <select id="content-platform">
+                                <option value="ブログ記事">ブログ記事</option>
+                                <option value="X (Twitter)">X (Twitter) ポスト</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-accent full-width" id="btn-generate">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> 錬成開始 (スタミナ -1)
+                        </button>
+                    </div>
+                    <div class="forge-result">
+                        <h3>錬成結果</h3>
+                        <textarea id="generated-content" placeholder="ここに生成されたコンテンツが表示されます..." readonly></textarea>
+                        <button class="btn btn-secondary mt-2" id="btn-copy">
+                            <i class="fa-solid fa-copy"></i> コピーして投稿する
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Report Guild Section (Metrics -> EXP) -->
+            <section id="report-guild" class="content-section">
+                <header class="section-header">
+                    <h1>成果報告ギルド</h1>
+                    <p>実際に投稿したコンテンツの反響を入力し、経験値(EXP)を獲得しよう！</p>
+                </header>
+                <div class="report-card">
+                    <div class="form-group">
+                        <label for="input-impressions">獲得したインプレッション数 (閲覧数)</label>
+                        <input type="number" id="input-impressions" placeholder="例: 1500" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="input-conversions">獲得したクリック数 / コンバージョン数</label>
+                        <input type="number" id="input-conversions" placeholder="例: 12" min="0">
+                    </div>
+                    <button class="btn btn-success" id="btn-submit-report">
+                        <i class="fa-solid fa-khanda"></i> ギルドに報告する
+                    </button>
+                    <div id="report-result-message" class="mt-2 text-success" style="display: none;"></div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings" class="content-section">
+                <header class="section-header">
+                    <h1>設定</h1>
+                </header>
+                <div class="settings-card">
+                    <h3>OpenAI API キー設定</h3>
+                    <p class="text-small text-muted">コンテンツ生成にはOpenAIのAPIキーが必要です。キーはお使いのブラウザにのみ保存されます。</p>
+                    <div class="form-group">
+                        <input type="password" id="api-key-input" placeholder="sk-...">
+                    </div>
+                    <button class="btn btn-primary" id="btn-save-key">保存する</button>
+                    <div id="settings-message" class="mt-2 text-success" style="display: none;"></div>
+                </div>
+
+                <div class="settings-card mt-3">
+                    <h3>データリセット</h3>
+                    <button class="btn btn-danger" id="btn-reset-data">セーブデータを初期化する</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Premium Modal -->
+    <div id="premium-modal" class="modal">
+        <div class="modal-content text-center">
+            <span class="close-btn">&times;</span>
+            <i class="fa-solid fa-crown modal-icon text-gold"></i>
+            <h2>プレミアム機能解放</h2>
+            <p>この機能を使用するにはプレミアムプラン（月額）へのアップグレードが必要です。</p>
+            <ul class="text-left modal-features">
+                <li><i class="fa-solid fa-check text-success"></i> ライバル投稿の自動分析</li>
+                <li><i class="fa-solid fa-check text-success"></i> トレンドからの完全自動記事生成</li>
+                <li><i class="fa-solid fa-check text-success"></i> スタミナ無制限</li>
+            </ul>
+            <button class="btn btn-accent mt-3">プレミアムに登録する (デモ)</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
