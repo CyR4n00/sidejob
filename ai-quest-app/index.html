@@ -28,8 +28,12 @@
                 <div class="exp-text">EXP: <span id="current-exp">0</span> / <span id="next-level-exp">100</span></div>
 
                 <div class="stamina-info mt-3">
-                    <span>⚡ スタミナ (生成回数):</span>
+                    <span>⚡ スタミナ:</span>
                     <span id="stamina-count">3</span>/3
+                </div>
+                <div class="stamina-info mt-2">
+                    <span class="text-gold"><i class="fa-solid fa-coins"></i> メダル:</span>
+                    <span id="medal-count">0</span>
                 </div>
             </div>
 
@@ -37,8 +41,8 @@
                 <a href="#" class="nav-item active" data-target="quest-board"><i class="fa-solid fa-scroll"></i> クエストボード</a>
                 <a href="#" class="nav-item" data-target="alchemy-forge"><i class="fa-solid fa-flask"></i> コンテンツ錬成</a>
                 <a href="#" class="nav-item" data-target="report-guild"><i class="fa-solid fa-chart-line"></i> 成果報告 (EXP獲得)</a>
-                <a href="#" class="nav-item premium-lock" data-target="premium-feature"><i class="fa-solid fa-eye"></i> ライバル偵察 <i class="fa-solid fa-lock text-gold"></i></a>
-                <a href="#" class="nav-item premium-lock" data-target="premium-feature"><i class="fa-solid fa-robot"></i> 完全自動化 <i class="fa-solid fa-lock text-gold"></i></a>
+                <a href="#" class="nav-item" data-target="gacha-shop"><i class="fa-solid fa-gem"></i> ガチャ＆スキル <span class="badge" style="margin-left:auto; padding:2px 5px; font-size:0.7rem;">NEW</span></a>
+                <a href="#" class="nav-item premium-lock" data-target="magic-eye-feature"><i class="fa-solid fa-eye"></i> 勝ちパターン分析 (魔眼) <i class="fa-solid fa-lock text-gold"></i></a>
                 <a href="#" class="nav-item" data-target="settings"><i class="fa-solid fa-gear"></i> 設定</a>
             </nav>
         </aside>
@@ -89,10 +93,27 @@
                             <input type="text" id="content-keyword" placeholder="例: 最新のAIツール, おすすめの副業">
                         </div>
                         <div class="form-group">
+                            <label for="affiliate-category">アフィリエイト・カテゴリー</label>
+                            <select id="affiliate-category">
+                                <option value="指定なし">指定なし (一般)</option>
+                                <option value="金融・投資">金融・投資 (クレカ/証券)</option>
+                                <option value="ガジェット・PC">ガジェット・PC関連</option>
+                                <option value="美容・健康">美容・健康・ダイエット</option>
+                                <option value="キャリア・転職">キャリア・転職・副業</option>
+                                <option value="アダルト・恋愛">アダルト・恋愛・マッチング</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label>プラットフォーム</label>
                             <select id="content-platform">
                                 <option value="ブログ記事">ブログ記事</option>
                                 <option value="X (Twitter)">X (Twitter) ポスト</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="border-top: 1px dashed var(--border); padding-top: 1rem;">
+                            <label class="text-gold"><i class="fa-solid fa-flask"></i> 使用するスキル (錬金術)</label>
+                            <select id="active-skill">
+                                <option value="none">使用しない (通常錬成)</option>
                             </select>
                         </div>
                         <button class="btn btn-accent full-width" id="btn-generate">
@@ -113,21 +134,68 @@
             <section id="report-guild" class="content-section">
                 <header class="section-header">
                     <h1>成果報告ギルド</h1>
-                    <p>実際に投稿したコンテンツの反響を入力し、経験値(EXP)を獲得しよう！</p>
+                    <p>実際に投稿したコンテンツの反響を入力し、経験値(EXP)とメダルを獲得しよう！</p>
                 </header>
                 <div class="report-card">
                     <div class="form-group">
-                        <label for="input-impressions">獲得したインプレッション数 (閲覧数)</label>
+                        <label for="input-keyword">📝 報告するコンテンツのキーワード（任意）</label>
+                        <input type="text" id="input-keyword" placeholder="例: 最新のAIツール">
+                    </div>
+                    <div class="form-group">
+                        <label for="input-impressions">👁️ 獲得したインプレッション数 (閲覧数)</label>
                         <input type="number" id="input-impressions" placeholder="例: 1500" min="0">
                     </div>
                     <div class="form-group">
-                        <label for="input-conversions">獲得したクリック数 / コンバージョン数</label>
+                        <label for="input-conversions">💰 獲得したクリック数 / コンバージョン数</label>
                         <input type="number" id="input-conversions" placeholder="例: 12" min="0">
                     </div>
-                    <button class="btn btn-success" id="btn-submit-report">
+                    <button class="btn btn-success full-width" id="btn-submit-report">
                         <i class="fa-solid fa-khanda"></i> ギルドに報告する
                     </button>
-                    <div id="report-result-message" class="mt-2 text-success" style="display: none;"></div>
+                    <div id="report-result-message" class="mt-3 text-center" style="display: none; font-size: 1.1rem;"></div>
+                </div>
+            </section>
+
+            <!-- Gacha & Skills Section -->
+            <section id="gacha-shop" class="content-section">
+                <header class="section-header">
+                    <h1>スキルガチャ</h1>
+                    <p>獲得したメダルを消費して、コンテンツ錬成を強化する「スキル(消費アイテム)」を獲得しよう。</p>
+                </header>
+                <div class="gacha-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <!-- Gacha Roll -->
+                    <div class="quest-card text-center">
+                        <i class="fa-solid fa-gem text-gold" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                        <h2>運命のガチャ</h2>
+                        <p>1回 10 メダル<br>(現在: <span id="gacha-medal-count" class="text-gold font-bold">0</span> メダル)</p>
+                        <button class="btn btn-primary mt-2" id="btn-roll-gacha">ガチャを回す</button>
+                        <div id="gacha-result" class="mt-3" style="display: none; padding: 1rem; background: var(--bg-dark); border: var(--window-border); border-radius: 4px;">
+                            <!-- Result will appear here -->
+                        </div>
+                    </div>
+
+                    <!-- Inventory -->
+                    <div class="quest-card">
+                        <h2>所持スキル一覧</h2>
+                        <ul style="list-style: none; margin-top: 1rem;" id="inventory-list">
+                            <li style="margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+                                <span><i class="fa-solid fa-image text-accent"></i> 絵師の魔道書</span>
+                                <span class="text-gold">x<span id="inv-picture">0</span></span>
+                            </li>
+                            <li style="margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+                                <span><i class="fa-solid fa-fire text-danger"></i> 煽りの書</span>
+                                <span class="text-gold">x<span id="inv-agitation">0</span></span>
+                            </li>
+                            <li style="margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+                                <span><i class="fa-solid fa-scale-balanced text-success"></i> 比較の天秤</span>
+                                <span class="text-gold">x<span id="inv-scale">0</span></span>
+                            </li>
+                            <li style="margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+                                <span><i class="fa-solid fa-shield-halved text-primary"></i> 炎上回避の護符</span>
+                                <span class="text-gold">x<span id="inv-amulet">0</span></span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </section>
 
@@ -166,15 +234,13 @@
     <div id="premium-modal" class="modal">
         <div class="modal-content text-center">
             <span class="close-btn">&times;</span>
-            <i class="fa-solid fa-crown modal-icon text-gold"></i>
-            <h2>プレミアム機能解放</h2>
-            <p>この機能を使用するにはプレミアムプラン（月額）へのアップグレードが必要です。</p>
-            <ul class="text-left modal-features">
-                <li><i class="fa-solid fa-check text-success"></i> ライバル投稿の自動分析</li>
-                <li><i class="fa-solid fa-check text-success"></i> トレンドからの完全自動記事生成</li>
-                <li><i class="fa-solid fa-check text-success"></i> スタミナ無制限</li>
-            </ul>
-            <button class="btn btn-accent mt-3">プレミアムに登録する (デモ)</button>
+            <i class="fa-solid fa-eye modal-icon text-accent"></i>
+            <h2>プレミアム機能「分析の魔眼」</h2>
+            <p>過去の報告データ（勝ちパターン）をAIが分析し、あなた専用の「高確率で当たるキーワードと構成」を提案します。</p>
+            <div style="background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 4px; margin: 1.5rem 0;" class="text-left text-muted">
+                <small>※現在バックエンド未実装のため、デモモードです。<br>この機能は将来のアップデート（SaaS版）で解放されます。</small>
+            </div>
+            <button class="btn btn-accent mt-3" id="btn-close-premium">閉じる</button>
         </div>
     </div>
 

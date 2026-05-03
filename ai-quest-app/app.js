@@ -2,11 +2,21 @@
 // AI Quest - Game Logic & Core Functions
 // ==========================================
 
-// --- State Management ---
+// --- State Management (Mock DB Architecture) ---
 const DEFAULT_STATE = {
     level: 1,
     exp: 0,
     stamina: 3,
+    medals: 0, // ガチャ用メダル
+    inventory: {
+        skill_picture: 0,  // 絵師の魔道書
+        skill_agitation: 0, // 煽りの書
+        skill_shadow: 0,    // 影の囁き
+        skill_scale: 0,     // 比較の天秤
+        skill_amulet: 0     // 炎上回避の護符
+    },
+    questHistory: [], // 勝ちパターン分析用ログ
+    subscriptionTier: 'free', // 'free' or 'vip'
     aiProvider: 'openai',
     apiKey: '',
     completedQuests: 0,
@@ -14,6 +24,22 @@ const DEFAULT_STATE = {
 };
 
 let userState = { ...DEFAULT_STATE };
+
+// Mock Database API (Future-proofing for Supabase integration)
+const MockDB = {
+    async getUser() {
+        const saved = localStorage.getItem('aiQuestState');
+        return saved ? { ...DEFAULT_STATE, ...JSON.parse(saved) } : { ...DEFAULT_STATE };
+    },
+    async saveUser(state) {
+        localStorage.setItem('aiQuestState', JSON.stringify(state));
+    },
+    async logQuestResult(record) {
+        // record: { date, keyword, impressions, conversions, expGained }
+        userState.questHistory.push(record);
+        await this.saveUser(userState);
+    }
+};
 
 const EXP_TABLE = {
     1: 100,
@@ -44,31 +70,28 @@ const DAILY_QUESTS = [
 ];
 
 // --- Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
-    loadState();
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadState();
     setupNavigation();
     setupDailyQuest();
     updateUI();
     setupEventListeners();
 });
 
-function loadState() {
-    const saved = localStorage.getItem('aiQuestState');
-    if (saved) {
-        userState = { ...DEFAULT_STATE, ...JSON.parse(saved) };
-    }
+async function loadState() {
+    userState = await MockDB.getUser();
 
     // Check daily reset (stamina and quest)
     const today = new Date().toDateString();
     if (userState.lastQuestDate !== today) {
         userState.stamina = 3;
         userState.lastQuestDate = today;
-        saveState();
+        await saveState();
     }
 }
 
-function saveState() {
-    localStorage.setItem('aiQuestState', JSON.stringify(userState));
+async function saveState() {
+    await MockDB.saveUser(userState);
 }
 
 // --- UI Updates ---
@@ -79,6 +102,29 @@ function updateUI() {
     const nextExp = EXP_TABLE[userState.level] || "MAX";
     document.getElementById('next-level-exp').textContent = nextExp;
     document.getElementById('stamina-count').textContent = userState.stamina;
+    document.getElementById('medal-count').textContent = userState.medals;
+    document.getElementById('gacha-medal-count').textContent = userState.medals;
+
+    // Inventory Updates
+    document.getElementById('inv-picture').textContent = userState.inventory.skill_picture || 0;
+    document.getElementById('inv-agitation').textContent = userState.inventory.skill_agitation || 0;
+    document.getElementById('inv-scale').textContent = userState.inventory.skill_scale || 0;
+    document.getElementById('inv-amulet').textContent = userState.inventory.skill_amulet || 0;
+
+    // Update Forge Skill Dropdown
+    const skillSelect = document.getElementById('active-skill');
+    // Save current selection to restore if possible
+    const currentVal = skillSelect.value;
+    skillSelect.innerHTML = '<option value="none">使用しない (通常錬成)</option>';
+
+    if(userState.inventory.skill_picture > 0) skillSelect.innerHTML += `<option value="skill_picture">絵師の魔道書 (所持: ${userState.inventory.skill_picture})</option>`;
+    if(userState.inventory.skill_agitation > 0) skillSelect.innerHTML += `<option value="skill_agitation">煽りの書 (所持: ${userState.inventory.skill_agitation})</option>`;
+    if(userState.inventory.skill_scale > 0) skillSelect.innerHTML += `<option value="skill_scale">比較の天秤 (所持: ${userState.inventory.skill_scale})</option>`;
+    if(userState.inventory.skill_amulet > 0) skillSelect.innerHTML += `<option value="skill_amulet">炎上回避の護符 (所持: ${userState.inventory.skill_amulet})</option>`;
+
+    if(Array.from(skillSelect.options).some(opt => opt.value === currentVal)) {
+        skillSelect.value = currentVal;
+    }
 
     // Title
     let currentTitle = TITLES[1];
@@ -129,7 +175,7 @@ function setupNavigation() {
     // Premium locks
     const premiumItems = document.querySelectorAll('.premium-lock');
     const modal = document.getElementById('premium-modal');
-    const closeBtn = document.querySelector('.close-btn');
+    const closeBtns = document.querySelectorAll('.close-btn, #btn-close-premium');
 
     premiumItems.forEach(item => {
         item.addEventListener('click', (e) => {
@@ -138,7 +184,7 @@ function setupNavigation() {
         });
     });
 
-    closeBtn.addEventListener('click', () => modal.style.display = 'none');
+    closeBtns.forEach(btn => btn.addEventListener('click', () => modal.style.display = 'none'));
     window.addEventListener('click', (e) => {
         if (e.target === modal) modal.style.display = 'none';
     });
@@ -172,7 +218,9 @@ async function generateContent() {
     const target = document.getElementById('target-audience').value;
     const tone = document.getElementById('content-tone').value;
     const keyword = document.getElementById('content-keyword').value;
+    const category = document.getElementById('affiliate-category').value;
     const platform = document.getElementById('content-platform').value;
+    const activeSkill = document.getElementById('active-skill').value;
     const resultBox = document.getElementById('generated-content');
     const btn = document.getElementById('btn-generate');
 
@@ -183,6 +231,30 @@ async function generateContent() {
 
     // Cost stamina
     userState.stamina -= 1;
+
+    // Process skill usage
+    let skillPromptModifier = "";
+    if (activeSkill !== "none") {
+        if (userState.inventory[activeSkill] > 0) {
+            userState.inventory[activeSkill] -= 1;
+
+            // Skill Effects
+            if (activeSkill === "skill_picture") {
+                skillPromptModifier = "\n\n【追加指示: 絵師の魔道書】\n記事の最後（またはアイキャッチ用）に、MidjourneyやDALL-Eで使える、この記事の内容にぴったりな画像を生成するための「英語のプロンプト」を1つ出力してください。";
+            } else if (activeSkill === "skill_agitation") {
+                skillPromptModifier = "\n\n【追加指示: 煽りの書】\n読者の購買意欲を強烈に刺激するため、PASONAの法則を用いて、悩みを深堀りし、緊急性を煽るようなコピーライティングを意識して作成してください。";
+            } else if (activeSkill === "skill_scale") {
+                skillPromptModifier = "\n\n【追加指示: 比較の天秤】\n対象となる商品やサービス（または一般的な代替品）について、メリット・デメリット・価格などが一目でわかる比較表をMarkdown形式で出力してください。";
+            } else if (activeSkill === "skill_amulet") {
+                skillPromptModifier = "\n\n【追加指示: 炎上回避の護符】\nプラットフォームの規約や薬機法、景品表示法に抵触しないよう、断定的な表現（絶対、必ず治る等）は避け、マイルドでクリーンな表現に徹底的に修正してください。";
+            }
+        } else {
+            alert("そのスキルは所持していません。");
+            userState.stamina += 1;
+            return;
+        }
+    }
+
     saveState();
     updateUI();
 
@@ -190,7 +262,8 @@ async function generateContent() {
     btn.disabled = true;
     resultBox.value = "AIが思考中...\n(※APIキーが設定されていない場合はモック文章が表示されます)";
 
-    const prompt = `あなたはプロのWebライター兼マーケターです。以下の条件で${platform}用のコンテンツを作成してください。\n\nターゲット層: ${target}\nトーン＆マナー: ${tone}\nテーマ/キーワード: ${keyword}\n\n出力形式: そのままコピペして使える見出し付きの文章。`;
+    const categoryText = category !== "指定なし" ? `\nアフィリエイト・カテゴリー: ${category} (このジャンルに特化した訴求を行うこと)` : "";
+    const prompt = `あなたはプロのWebライター兼アフィリエイトマーケターです。以下の条件で${platform}用のコンテンツを作成してください。\n\nターゲット層: ${target}\nトーン＆マナー: ${tone}\nテーマ/キーワード: ${keyword}${categoryText}\n\n出力形式: そのままコピペして使える見出し付きの文章。${skillPromptModifier}`;
 
     try {
         let generatedText = "";
@@ -257,8 +330,59 @@ async function generateContent() {
     }
 }
 
+// --- Gacha System ---
+const GACHA_POOL = [
+    { id: 'skill_picture', name: '絵師の魔道書', icon: '<i class="fa-solid fa-image text-accent"></i>' },
+    { id: 'skill_agitation', name: '煽りの書', icon: '<i class="fa-solid fa-fire text-danger"></i>' },
+    { id: 'skill_scale', name: '比較の天秤', icon: '<i class="fa-solid fa-scale-balanced text-success"></i>' },
+    { id: 'skill_amulet', name: '炎上回避の護符', icon: '<i class="fa-solid fa-shield-halved text-primary"></i>' }
+];
+
+async function rollGacha() {
+    const cost = 10;
+    const resultBox = document.getElementById('gacha-result');
+    const btn = document.getElementById('btn-roll-gacha');
+
+    if (userState.medals < cost) {
+        resultBox.innerHTML = '<span class="text-danger">メダルが足りません！（1回10メダル）<br>クエストをこなして報告ギルドで稼ぎましょう。</span>';
+        resultBox.style.display = 'block';
+        return;
+    }
+
+    // Deduct cost
+    userState.medals -= cost;
+    btn.disabled = true;
+    btn.textContent = "ガチャ回転中...";
+    resultBox.style.display = 'none';
+    updateUI();
+
+    // Mock animation delay
+    await new Promise(r => setTimeout(r, 1500));
+
+    // Roll logic
+    const randomIndex = Math.floor(Math.random() * GACHA_POOL.length);
+    const wonItem = GACHA_POOL[randomIndex];
+
+    // Add to inventory
+    userState.inventory[wonItem.id] = (userState.inventory[wonItem.id] || 0) + 1;
+    await saveState();
+    updateUI();
+
+    // Display result
+    resultBox.innerHTML = `
+        <h3 class="text-gold">✨ スキル獲得！ ✨</h3>
+        <div style="font-size: 2rem; margin: 1rem 0;">${wonItem.icon}</div>
+        <p><strong>${wonItem.name}</strong> を獲得しました！</p>
+        <p class="text-small text-muted mt-2">コンテンツ錬成画面でセットして使用できます。</p>
+    `;
+    resultBox.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = "もう一度回す";
+}
+
 // --- Gamification (EXP & Leveling) ---
-function submitReport() {
+async function submitReport() {
+    const keyword = document.getElementById('input-keyword').value || "不明なクエスト";
     const imp = parseInt(document.getElementById('input-impressions').value) || 0;
     const conv = parseInt(document.getElementById('input-conversions').value) || 0;
     const msgBox = document.getElementById('report-result-message');
@@ -271,16 +395,28 @@ function submitReport() {
     }
 
     // Formula: 100 imp = 10 EXP, 1 conv = 50 EXP
+    // Medals: 1 medal per 50 EXP
     const expGained = Math.floor(imp / 10) + (conv * 50);
+    const medalsGained = Math.max(1, Math.floor(expGained / 50)); // Minimum 1 medal for reporting anything > 0
 
     if (expGained <= 0) {
-        msgBox.textContent = "経験値を獲得できませんでした。もう少しインプレッションが必要です。";
-        msgBox.className = "mt-2 text-muted";
+        msgBox.textContent = "成果を獲得できませんでした。もう少しインプレッションが必要です。";
+        msgBox.className = "mt-3 text-muted text-center";
         msgBox.style.display = "block";
         return;
     }
 
     userState.exp += expGained;
+    userState.medals += medalsGained;
+
+    // Log to mock DB history
+    await MockDB.logQuestResult({
+        date: new Date().toISOString(),
+        keyword: keyword,
+        impressions: imp,
+        conversions: conv,
+        expGained: expGained
+    });
 
     // Check level up
     let levelUpMsg = "";
@@ -289,14 +425,15 @@ function submitReport() {
         levelUpMsg = `\n🎉 レベルアップ！ レベル ${userState.level} になりました！`;
     }
 
-    saveState();
+    await saveState();
     updateUI();
 
+    document.getElementById('input-keyword').value = '';
     document.getElementById('input-impressions').value = '';
     document.getElementById('input-conversions').value = '';
 
-    msgBox.innerHTML = `<strong>${expGained} EXP</strong> を獲得しました！${levelUpMsg}`;
-    msgBox.className = "mt-2 text-success";
+    msgBox.innerHTML = `<strong>${expGained} EXP</strong> と <strong class="text-gold"><i class="fa-solid fa-coins"></i> ${medalsGained} メダル</strong> を獲得しました！${levelUpMsg}`;
+    msgBox.className = "mt-3 text-success text-center";
     msgBox.style.display = "block";
 
     setTimeout(() => { msgBox.style.display = "none"; }, 5000);
@@ -319,6 +456,7 @@ function setupEventListeners() {
     });
 
     document.getElementById('btn-submit-report').addEventListener('click', submitReport);
+    document.getElementById('btn-roll-gacha').addEventListener('click', rollGacha);
 
     // Handle changing provider (clear password mask to avoid confusion)
     document.getElementById('ai-provider').addEventListener('change', (e) => {
