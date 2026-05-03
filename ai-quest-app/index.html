@@ -55,11 +55,25 @@
                     <h1>本日のクエスト</h1>
                     <p>AIが選んだ今日のテーマでコンテンツを作成し、経験値を稼ごう！</p>
                 </header>
-                <div class="quest-card">
-                    <div class="quest-type badge">デイリークエスト</div>
+                <div class="quest-card mb-4" style="margin-bottom: 2rem;">
+                    <div class="quest-type badge" style="background-color: rgba(59, 130, 246, 0.2); color: var(--primary);">メインクエスト (A)</div>
                     <h2 id="daily-quest-title">...読み込み中...</h2>
                     <p id="daily-quest-desc">...</p>
                     <button class="btn btn-primary" id="btn-start-quest">このクエストに挑戦する</button>
+                </div>
+
+                <div class="quest-card">
+                    <div class="quest-type badge" style="background-color: rgba(235, 69, 158, 0.2); color: var(--accent);">サブクエスト (B - テスト用)</div>
+                    <h2 id="sub-quest-title">...読み込み中...</h2>
+                    <p id="sub-quest-desc">メインクエストと少し角度を変えたテーマです。A/Bテストとして両方投稿して反響を比べてみましょう。</p>
+                    <button class="btn btn-accent" id="btn-start-sub-quest">このクエストに挑戦する</button>
+                </div>
+
+                <div class="text-center" style="margin-top: 2rem;">
+                    <button class="btn btn-success" id="btn-claim-daily" style="padding: 1rem 2rem; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(59, 165, 92, 0.4);">
+                        <i class="fa-solid fa-gift"></i> クエスト完了報酬 (5メダル) を受け取る
+                    </button>
+                    <p class="text-small text-muted mt-2">※1日1回、記事を投稿したら押してください。</p>
                 </div>
             </section>
 
@@ -72,12 +86,15 @@
                 <div class="forge-container">
                     <div class="forge-controls">
                         <div class="form-group">
-                            <label>ターゲット層</label>
+                            <label>ターゲット層 (ペルソナ)</label>
                             <select id="target-audience">
-                                <option value="副業初心者">副業初心者</option>
-                                <option value="学生">学生</option>
-                                <option value="会社員">会社員</option>
-                                <option value="主婦">主婦</option>
+                                <option value="副業初心者">副業初心者 (とにかく稼ぎたい)</option>
+                                <option value="20代女性">20代女性 (トレンド・美容に敏感)</option>
+                                <option value="学生">学生 (時間はあるがお金がない)</option>
+                                <option value="忙しい社会人">忙しい社会人 (時短・効率重視)</option>
+                                <option value="主婦">主婦 (スキマ時間・節約重視)</option>
+                                <option value="シニア層">シニア層 (老後の不安・健康重視)</option>
+                                <option value="オタク・マニア">ネットに強い層 (深い情報・スペック重視)</option>
                             </select>
                         </div>
                         <div class="form-group">

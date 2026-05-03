@@ -20,7 +20,8 @@ const DEFAULT_STATE = {
     aiProvider: 'openai',
     apiKey: '',
     completedQuests: 0,
-    lastQuestDate: null
+    lastQuestDate: null,
+    dailyQuestClaimed: false
 };
 
 let userState = { ...DEFAULT_STATE };
@@ -86,6 +87,7 @@ async function loadState() {
     if (userState.lastQuestDate !== today) {
         userState.stamina = 3;
         userState.lastQuestDate = today;
+        userState.dailyQuestClaimed = false; // Reset daily quest reward
         await saveState();
     }
 }
@@ -132,6 +134,22 @@ function updateUI() {
         if (userState.level >= parseInt(lvl)) currentTitle = TITLES[lvl];
     }
     document.getElementById('user-title').textContent = currentTitle;
+
+    // Update Claim Daily Button
+    const claimBtn = document.getElementById('btn-claim-daily');
+    if (claimBtn) {
+        if (userState.dailyQuestClaimed) {
+            claimBtn.disabled = true;
+            claimBtn.innerHTML = '<i class="fa-solid fa-check"></i> 報酬獲得済み';
+            claimBtn.classList.add('btn-secondary');
+            claimBtn.classList.remove('btn-success');
+        } else {
+            claimBtn.disabled = false;
+            claimBtn.innerHTML = '<i class="fa-solid fa-gift"></i> クエスト完了報酬 (5メダル) を受け取る';
+            claimBtn.classList.add('btn-success');
+            claimBtn.classList.remove('btn-secondary');
+        }
+    }
 
     // Progress bar
     if (nextExp !== "MAX") {
@@ -192,18 +210,30 @@ function setupNavigation() {
 
 // --- Quest Logic ---
 function setupDailyQuest() {
-    // Generate a random quest based on today's date so it's consistent for the day
+    // Generate two pseudo-random quests based on today's date for A/B testing
     const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
-    const questIndex = dayOfYear % DAILY_QUESTS.length;
-    const quest = DAILY_QUESTS[questIndex];
 
-    document.getElementById('daily-quest-title').textContent = quest.title;
-    document.getElementById('daily-quest-desc').textContent = quest.desc;
+    const mainQuestIndex = dayOfYear % DAILY_QUESTS.length;
+    const subQuestIndex = (dayOfYear + 2) % DAILY_QUESTS.length; // Different quest
 
-    // Auto-fill keyword hint when starting quest
+    const mainQuest = DAILY_QUESTS[mainQuestIndex];
+    const subQuest = DAILY_QUESTS[subQuestIndex];
+
+    // Main Quest UI
+    document.getElementById('daily-quest-title').textContent = mainQuest.title;
+    document.getElementById('daily-quest-desc').textContent = mainQuest.desc;
+
+    // Sub Quest UI
+    document.getElementById('sub-quest-title').textContent = subQuest.title + " (別アングル)";
+
+    // Event Listeners for starting quests
     document.getElementById('btn-start-quest').addEventListener('click', () => {
-        document.getElementById('content-keyword').value = quest.keywordHint;
-        // Switch tab to forge
+        document.getElementById('content-keyword').value = mainQuest.keywordHint + " (Aパターン)";
+        document.querySelector('[data-target="alchemy-forge"]').click();
+    });
+
+    document.getElementById('btn-start-sub-quest').addEventListener('click', () => {
+        document.getElementById('content-keyword').value = subQuest.keywordHint + " (Bパターン)";
         document.querySelector('[data-target="alchemy-forge"]').click();
     });
 }
@@ -354,10 +384,17 @@ async function rollGacha() {
     btn.disabled = true;
     btn.textContent = "ガチャ回転中...";
     resultBox.style.display = 'none';
+
+    // Add exciting animation class to the icon
+    const gachaContainer = document.querySelector('.gacha-container .quest-card');
+    gachaContainer.classList.add('gacha-animating');
+
     updateUI();
 
     // Mock animation delay
     await new Promise(r => setTimeout(r, 1500));
+
+    gachaContainer.classList.remove('gacha-animating');
 
     // Roll logic
     const randomIndex = Math.floor(Math.random() * GACHA_POOL.length);
@@ -395,9 +432,7 @@ async function submitReport() {
     }
 
     // Formula: 100 imp = 10 EXP, 1 conv = 50 EXP
-    // Medals: 1 medal per 50 EXP
     const expGained = Math.floor(imp / 10) + (conv * 50);
-    const medalsGained = Math.max(1, Math.floor(expGained / 50)); // Minimum 1 medal for reporting anything > 0
 
     if (expGained <= 0) {
         msgBox.textContent = "成果を獲得できませんでした。もう少しインプレッションが必要です。";
@@ -407,7 +442,6 @@ async function submitReport() {
     }
 
     userState.exp += expGained;
-    userState.medals += medalsGained;
 
     // Log to mock DB history
     await MockDB.logQuestResult({
@@ -418,11 +452,17 @@ async function submitReport() {
         expGained: expGained
     });
 
-    // Check level up
+    // Check level up & reward medals (50 per level)
     let levelUpMsg = "";
+    let levelUpMedals = 0;
     while (EXP_TABLE[userState.level] && userState.exp >= EXP_TABLE[userState.level]) {
         userState.level++;
-        levelUpMsg = `\n🎉 レベルアップ！ レベル ${userState.level} になりました！`;
+        levelUpMedals += 50;
+        levelUpMsg = `<br><span class="text-accent text-glow">🎉 レベルアップ！ レベル ${userState.level} になりました！</span><br><strong class="text-gold">🎁 レベルアップ報酬: 50 メダル獲得！</strong>`;
+    }
+
+    if (levelUpMedals > 0) {
+        userState.medals += levelUpMedals;
     }
 
     await saveState();
@@ -432,11 +472,11 @@ async function submitReport() {
     document.getElementById('input-impressions').value = '';
     document.getElementById('input-conversions').value = '';
 
-    msgBox.innerHTML = `<strong>${expGained} EXP</strong> と <strong class="text-gold"><i class="fa-solid fa-coins"></i> ${medalsGained} メダル</strong> を獲得しました！${levelUpMsg}`;
+    msgBox.innerHTML = `<strong>${expGained} EXP</strong> を獲得しました！${levelUpMsg}`;
     msgBox.className = "mt-3 text-success text-center";
     msgBox.style.display = "block";
 
-    setTimeout(() => { msgBox.style.display = "none"; }, 5000);
+    setTimeout(() => { msgBox.style.display = "none"; }, 8000);
 }
 
 // --- Event Listeners Setup ---
@@ -457,6 +497,19 @@ function setupEventListeners() {
 
     document.getElementById('btn-submit-report').addEventListener('click', submitReport);
     document.getElementById('btn-roll-gacha').addEventListener('click', rollGacha);
+
+    const claimBtn = document.getElementById('btn-claim-daily');
+    if(claimBtn) {
+        claimBtn.addEventListener('click', async () => {
+            if (!userState.dailyQuestClaimed) {
+                userState.medals += 5;
+                userState.dailyQuestClaimed = true;
+                await saveState();
+                updateUI();
+                alert("デイリークエスト報酬の 5 メダルを獲得しました！ガチャを引きに行きましょう！");
+            }
+        });
+    }
 
     // Handle changing provider (clear password mask to avoid confusion)
     document.getElementById('ai-provider').addEventListener('change', (e) => {
