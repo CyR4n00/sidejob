@@ -137,10 +137,18 @@
                     <h1>設定</h1>
                 </header>
                 <div class="settings-card">
-                    <h3>OpenAI API キー設定</h3>
-                    <p class="text-small text-muted">コンテンツ生成にはOpenAIのAPIキーが必要です。キーはお使いのブラウザにのみ保存されます。</p>
+                    <h3>AI API キー設定</h3>
+                    <p class="text-small text-muted">コンテンツ生成にはAIのAPIキーが必要です。キーはお使いのブラウザにのみ安全に保存されます。</p>
+                    <div class="form-group mt-2">
+                        <label>使用するAIモデル</label>
+                        <select id="ai-provider">
+                            <option value="openai">OpenAI (ChatGPT)</option>
+                            <option value="gemini">Google Gemini</option>
+                        </select>
+                    </div>
                     <div class="form-group">
-                        <input type="password" id="api-key-input" placeholder="sk-...">
+                        <label>APIキー</label>
+                        <input type="password" id="api-key-input" placeholder="APIキーを入力してください...">
                     </div>
                     <button class="btn btn-primary" id="btn-save-key">保存する</button>
                     <div id="settings-message" class="mt-2 text-success" style="display: none;"></div>

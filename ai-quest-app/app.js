@@ -7,6 +7,7 @@ const DEFAULT_STATE = {
     level: 1,
     exp: 0,
     stamina: 3,
+    aiProvider: 'openai',
     apiKey: '',
     completedQuests: 0,
     lastQuestDate: null
@@ -97,9 +98,12 @@ function updateUI() {
         document.getElementById('exp-bar').style.width = '100%';
     }
 
-    // Settings API Key mask
+    // Settings logic
+    document.getElementById('ai-provider').value = userState.aiProvider || 'openai';
     if (userState.apiKey) {
         document.getElementById('api-key-input').value = "********";
+    } else {
+        document.getElementById('api-key-input').value = "";
     }
 }
 
@@ -192,22 +196,47 @@ async function generateContent() {
         let generatedText = "";
 
         if (userState.apiKey && userState.apiKey !== "********") {
-            // Real API Call (Be careful with exposing keys in purely client-side apps, this is for MVP/demo purposes)
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userState.apiKey}`
-                },
-                body: JSON.stringify({
-                    model: "gpt-3.5-turbo",
-                    messages: [{ role: "user", content: prompt }]
-                })
-            });
+            const provider = userState.aiProvider || 'openai';
 
-            if (!response.ok) throw new Error("APIリクエストエラー。キーが正しいか確認してください。");
-            const data = await response.json();
-            generatedText = data.choices[0].message.content;
+            if (provider === 'openai') {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userState.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "gpt-3.5-turbo",
+                        messages: [{ role: "user", content: prompt }]
+                    })
+                });
+
+                if (!response.ok) throw new Error("OpenAI APIエラー。キーが正しいか、利用枠があるか確認してください。");
+                const data = await response.json();
+                generatedText = data.choices[0].message.content;
+
+            } else if (provider === 'gemini') {
+                // Gemini API integration
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${userState.apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: prompt }]
+                        }]
+                    })
+                });
+
+                if (!response.ok) throw new Error("Gemini APIエラー。キーが正しいか確認してください。");
+                const data = await response.json();
+                if(data.candidates && data.candidates[0].content.parts[0].text) {
+                    generatedText = data.candidates[0].content.parts[0].text;
+                } else {
+                    throw new Error("Geminiからの応答形式が予期せぬものでした。");
+                }
+            }
         } else {
             // Mock Delay
             await new Promise(r => setTimeout(r, 2000));
@@ -291,17 +320,29 @@ function setupEventListeners() {
 
     document.getElementById('btn-submit-report').addEventListener('click', submitReport);
 
+    // Handle changing provider (clear password mask to avoid confusion)
+    document.getElementById('ai-provider').addEventListener('change', (e) => {
+        userState.aiProvider = e.target.value;
+        // Optionally clear the API key field when switching to avoid saving the wrong key to the wrong provider
+        // document.getElementById('api-key-input').value = "";
+    });
+
     document.getElementById('btn-save-key').addEventListener('click', () => {
         const key = document.getElementById('api-key-input').value;
+        const provider = document.getElementById('ai-provider').value;
         const msg = document.getElementById('settings-message');
+
+        userState.aiProvider = provider;
+
         if (key && key !== "********") {
             userState.apiKey = key;
-            saveState();
-            msg.textContent = "APIキーを保存しました。";
-            msg.style.display = "block";
-            updateUI();
-            setTimeout(() => { msg.style.display = "none"; }, 3000);
         }
+
+        saveState();
+        msg.textContent = "設定を保存しました。";
+        msg.style.display = "block";
+        updateUI();
+        setTimeout(() => { msg.style.display = "none"; }, 3000);
     });
 
     document.getElementById('btn-reset-data').addEventListener('click', () => {
