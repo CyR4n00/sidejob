@@ -128,9 +128,6 @@ function updateUI() {
         skillSelect.value = currentVal;
     }
 
-    // Next Action Guide Update
-    updateNextActionGuide();
-
     // Title
     let currentTitle = TITLES[1];
     for (let lvl in TITLES) {
@@ -144,40 +141,8 @@ function updateUI() {
         historyCountEl.textContent = userState.questHistory.length;
     }
 
-// --- Next Action Guide Logic ---
-function updateNextActionGuide() {
-    const guideEl = document.getElementById('next-action-text');
-    if (!guideEl) return;
-
-    let advice = "";
-
-    // 優先度1: ガチャが引ける
-    if (userState.medals >= 10) {
-        advice = "メダルが10枚以上貯まっています！<br><span class='text-gold'>【ガチャ＆スキル】タブからガチャを回して新たな力を手に入れましょう。</span>";
-    }
-    // 優先度2: クエスト未完了でスタミナがある
-    else if (!userState.dailyQuestClaimed && userState.stamina > 0) {
-        advice = "本日のクエストが未完了です。<br><span class='text-primary'>下のクエストを選んで【コンテンツ錬成】に進みましょう！</span>";
-    }
-    // 優先度3: スタミナがないがクエスト報酬を受け取っていない (投稿・報告待ち)
-    else if (userState.stamina <= 0 && !userState.dailyQuestClaimed) {
-        advice = "スタミナが尽きました。<br><span class='text-accent'>作成した記事をSNSやブログに投稿し、【成果報告ギルド】で結果を報告しましょう。</span>";
-    }
-    // 優先度4: クエスト完了済みで魔眼が使える
-    else if (userState.dailyQuestClaimed && userState.questHistory.length >= 3) {
-        advice = "本日のクエストは完了しました。<br><span class='text-accent'>【魔眼 (分析)】タブを開いて、次の勝ちパターンを分析してみましょう！</span>";
-    }
-    // 優先度5: クエスト完了済みだが魔眼が使えない
-    else if (userState.dailyQuestClaimed) {
-        advice = "本日のクエストは完了しました。お疲れ様です！<br><span class='text-muted'>明日もログインして、新たなコンテンツを錬成しましょう。</span>";
-    }
-    // フェールセーフ
-    else {
-        advice = "自由にタブを行き来して、コンテンツ錬金術を探求しましょう！";
-    }
-
-    guideEl.innerHTML = advice;
-}
+    // Strategy Recommender Update
+    generateStrategyRecommendation();
 
     // Update Claim Daily Button
     const claimBtn = document.getElementById('btn-claim-daily');
@@ -248,6 +213,25 @@ function showAlert(title, message) {
     document.getElementById('alert-title').textContent = title;
     document.getElementById('alert-message').textContent = message;
     document.getElementById('alert-modal').style.display = 'block';
+}
+
+// --- Strategy Recommender Logic ---
+function generateStrategyRecommendation() {
+    const guideEl = document.getElementById('next-action-text');
+    if (!guideEl) return;
+
+    // Pseudo-random daily recommendation
+    const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+
+    const targets = ["20代女性", "忙しい社会人", "副業初心者", "ネットに強い層", "シニア層"];
+    const platforms = ["Instagramのカルーセル投稿", "X(Twitter)のツリー投稿", "TikTokのショート動画", "noteの長文記事"];
+    const categories = ["美容・健康", "ガジェット・PC", "金融・投資", "キャリア・転職", "最新のAIツール"];
+
+    const t = targets[dayOfYear % targets.length];
+    const p = platforms[(dayOfYear + 3) % platforms.length];
+    const c = categories[(dayOfYear + 5) % categories.length];
+
+    guideEl.innerHTML = `本日の特異点観測：<br><span class='text-accent font-bold'>【ターゲット: ${t}】</span>に対して、<span class='text-primary font-bold'>【${p}】</span>で<span class='text-gold font-bold'>「${c}」</span>のアプローチを試みると、強い共鳴(コンバージョン)が得られる可能性が高い。`;
 }
 
 // --- Quest Logic ---
