@@ -135,6 +135,12 @@ function updateUI() {
     }
     document.getElementById('user-title').textContent = currentTitle;
 
+    // History Count
+    const historyCountEl = document.getElementById('history-count');
+    if (historyCountEl) {
+        historyCountEl.textContent = userState.questHistory.length;
+    }
+
     // Update Claim Daily Button
     const claimBtn = document.getElementById('btn-claim-daily');
     if (claimBtn) {
@@ -190,22 +196,20 @@ function setupNavigation() {
         });
     });
 
-    // Premium locks
-    const premiumItems = document.querySelectorAll('.premium-lock');
-    const modal = document.getElementById('premium-modal');
-    const closeBtns = document.querySelectorAll('.close-btn, #btn-close-premium');
+    // Alert Modal Logic
+    const alertModal = document.getElementById('alert-modal');
+    const closeAlertBtns = alertModal.querySelectorAll('.close-btn, #btn-close-alert');
 
-    premiumItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            modal.style.display = 'block';
-        });
-    });
-
-    closeBtns.forEach(btn => btn.addEventListener('click', () => modal.style.display = 'none'));
+    closeAlertBtns.forEach(btn => btn.addEventListener('click', () => alertModal.style.display = 'none'));
     window.addEventListener('click', (e) => {
-        if (e.target === modal) modal.style.display = 'none';
+        if (e.target === alertModal) alertModal.style.display = 'none';
     });
+}
+
+function showAlert(title, message) {
+    document.getElementById('alert-title').textContent = title;
+    document.getElementById('alert-message').textContent = message;
+    document.getElementById('alert-modal').style.display = 'block';
 }
 
 // --- Quest Logic ---
@@ -417,6 +421,107 @@ async function rollGacha() {
     btn.textContent = "もう一度回す";
 }
 
+// --- Magic Eye (Analytics) ---
+async function activateMagicEye() {
+    if (userState.questHistory.length < 3) {
+        showAlert("データ不足", `分析には最低3件の報告データが必要です。\n現在: ${userState.questHistory.length}件 / 必要: 3件\n\nまずはクエストをこなしてギルドに報告しましょう。`);
+        return;
+    }
+
+    if (!userState.apiKey || userState.apiKey === "********") {
+        showAlert("APIキー未設定", "魔眼によるAI分析を行うには、「設定」タブからOpenAIまたはGeminiのAPIキーを登録してください。");
+        return;
+    }
+
+    const btn = document.getElementById('btn-activate-magic-eye');
+    const intro = document.getElementById('magic-eye-intro');
+    const loading = document.getElementById('magic-eye-loading');
+    const resultBox = document.getElementById('magic-eye-result');
+
+    intro.style.display = 'none';
+    resultBox.style.display = 'none';
+    loading.style.display = 'block';
+
+    // 履歴データを直近10件までに絞って文字列化
+    const recentHistory = userState.questHistory.slice(-10);
+    const historyText = recentHistory.map(h => `- キーワード: ${h.keyword}, インプレッション: ${h.impressions}, コンバージョン: ${h.conversions}`).join("\n");
+
+    const prompt = `あなたはプロのWebマーケター兼データアナリストです。以下のユーザーのアフィリエイト投稿履歴（キーワード、閲覧数、コンバージョン数）を分析してください。
+
+【履歴データ】
+${historyText}
+
+上記のデータから、どのキーワードやジャンルが最も反響（閲覧やCV）が良かったかを推測し、以下の3点を提示してください。
+必ず指定されたJSONフォーマットのみを出力してください。Markdownブロック(\`\`\`json)は不要です。
+
+【出力フォーマット】
+{
+  "analysis": "なぜそのキーワード/ジャンルがウケたのかのプロとしての考察（200文字程度）",
+  "target": "次に狙うべき具体的なターゲット層（ペルソナ）",
+  "custom_quest": "分析に基づいた、次に投稿すべき具体的な記事のテーマ・キーワード案"
+}`;
+
+    try {
+        let aiResponseText = "";
+        const provider = userState.aiProvider || 'openai';
+
+        if (provider === 'openai') {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userState.apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "gpt-3.5-turbo",
+                    messages: [{ role: "user", content: prompt }],
+                    temperature: 0.7
+                })
+            });
+
+            if (!response.ok) throw new Error("OpenAI APIエラー");
+            const data = await response.json();
+            aiResponseText = data.choices[0].message.content;
+
+        } else if (provider === 'gemini') {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${userState.apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+
+            if (!response.ok) throw new Error("Gemini APIエラー");
+            const data = await response.json();
+            aiResponseText = data.candidates[0].content.parts[0].text;
+        }
+
+        // Clean up markdown wrapper if AI ignored the instruction
+        aiResponseText = aiResponseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsedResult = JSON.parse(aiResponseText);
+
+        document.getElementById('result-analysis').textContent = parsedResult.analysis;
+        document.getElementById('result-target').textContent = parsedResult.target;
+        document.getElementById('result-quest').textContent = parsedResult.custom_quest;
+
+        loading.style.display = 'none';
+        resultBox.style.display = 'block';
+
+        // Setup accept button
+        document.getElementById('btn-accept-custom-quest').onclick = () => {
+            document.getElementById('content-keyword').value = parsedResult.custom_quest;
+            document.querySelector('[data-target="alchemy-forge"]').click();
+        };
+
+    } catch (error) {
+        console.error("Magic Eye Error:", error);
+        loading.style.display = 'none';
+        intro.style.display = 'block';
+        showAlert("解析失敗", "魔眼の解析中にエラーが発生しました。APIキーや通信環境を確認してください。\n" + error.message);
+    }
+}
+
 // --- Gamification (EXP & Leveling) ---
 async function submitReport() {
     const keyword = document.getElementById('input-keyword').value || "不明なクエスト";
@@ -497,6 +602,7 @@ function setupEventListeners() {
 
     document.getElementById('btn-submit-report').addEventListener('click', submitReport);
     document.getElementById('btn-roll-gacha').addEventListener('click', rollGacha);
+    document.getElementById('btn-activate-magic-eye').addEventListener('click', activateMagicEye);
 
     const claimBtn = document.getElementById('btn-claim-daily');
     if(claimBtn) {

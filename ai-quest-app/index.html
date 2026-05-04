@@ -42,7 +42,7 @@
                 <a href="#" class="nav-item" data-target="alchemy-forge"><i class="fa-solid fa-flask"></i> <span>コンテンツ錬成</span></a>
                 <a href="#" class="nav-item" data-target="report-guild"><i class="fa-solid fa-chart-line"></i> <span>成果報告 (EXP獲得)</span></a>
                 <a href="#" class="nav-item" data-target="gacha-shop"><i class="fa-solid fa-gem"></i> <span>ガチャ＆スキル</span> <span class="badge" style="padding:2px 5px; font-size:0.7rem; margin:0;">NEW</span></a>
-                <a href="#" class="nav-item premium-lock" data-target="magic-eye-feature"><i class="fa-solid fa-eye"></i> <span>勝ちパターン分析</span> <i class="fa-solid fa-lock text-gold"></i></a>
+                <a href="#" class="nav-item" data-target="magic-eye-feature"><i class="fa-solid fa-eye text-accent"></i> <span class="text-glow">魔眼 (分析)</span> <span class="badge" style="padding:2px 5px; font-size:0.7rem; margin:0; background:rgba(235, 69, 158, 0.2); color:var(--accent);">NEW</span></a>
                 <a href="#" class="nav-item" data-target="settings"><i class="fa-solid fa-gear"></i> <span>設定</span></a>
             </nav>
         </aside>
@@ -216,6 +216,54 @@
                 </div>
             </section>
 
+            <!-- Magic Eye (Analytics) Section -->
+            <section id="magic-eye-feature" class="content-section">
+                <header class="section-header">
+                    <h1><i class="fa-solid fa-eye text-accent text-glow"></i> 分析の魔眼</h1>
+                    <p>過去の成果報告データをAIが分析し、あなた専用の「勝ちパターン」と「次なる特注クエスト」を導き出します。</p>
+                </header>
+
+                <div class="quest-card">
+                    <div class="text-center" id="magic-eye-intro">
+                        <i class="fa-solid fa-crystal-ball text-primary" style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.8;"></i>
+                        <h2 class="mb-4">データから真理を錬成する</h2>
+                        <p class="text-muted mb-4">※分析には最低3件以上の成果報告（履歴）が必要です。<br>現在の報告数: <span id="history-count" class="text-gold font-bold">0</span> 件</p>
+                        <button class="btn btn-accent" id="btn-activate-magic-eye" style="font-size: 1.2rem; padding: 1rem 2rem; box-shadow: 0 0 20px rgba(235, 69, 158, 0.4);">
+                            <i class="fa-solid fa-bolt"></i> 魔眼を開眼する (分析開始)
+                        </button>
+                    </div>
+
+                    <div id="magic-eye-loading" class="text-center mt-4" style="display: none;">
+                        <i class="fa-solid fa-spinner fa-spin text-accent" style="font-size: 3rem;"></i>
+                        <p class="mt-3 text-glow">過去の記憶を解析中...</p>
+                    </div>
+
+                    <div id="magic-eye-result" style="display: none; margin-top: 2rem;">
+                        <h3 class="text-gold" style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                            <i class="fa-solid fa-scroll"></i> 魔眼のお告げ
+                        </h3>
+
+                        <div style="background: rgba(0,0,0,0.4); padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--accent); margin-bottom: 1.5rem;">
+                            <h4 class="text-accent mb-2"><i class="fa-solid fa-magnifying-glass-chart"></i> 分析結果 (勝ちパターン)</h4>
+                            <p id="result-analysis" style="white-space: pre-wrap;">ここに分析結果が表示されます。</p>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.4); padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--primary); margin-bottom: 1.5rem;">
+                            <h4 class="text-primary mb-2"><i class="fa-solid fa-bullseye"></i> 次に狙うべきターゲット</h4>
+                            <p id="result-target" style="white-space: pre-wrap;">ここにターゲット層が表示されます。</p>
+                        </div>
+
+                        <div style="background: rgba(235, 69, 158, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(235, 69, 158, 0.3);">
+                            <h4 class="text-gold mb-2 text-glow"><i class="fa-solid fa-star"></i> あなた専用の特注クエスト</h4>
+                            <p id="result-quest" style="white-space: pre-wrap; font-size: 1.1rem; font-weight: bold;">ここに特注クエストのテーマ・キーワードが表示されます。</p>
+                            <div class="text-center mt-4">
+                                <button class="btn btn-primary" id="btn-accept-custom-quest">この特注クエストを受注して錬成所へ</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Settings Section -->
             <section id="settings" class="content-section">
                 <header class="section-header">
@@ -247,17 +295,14 @@
         </main>
     </div>
 
-    <!-- Premium Modal -->
-    <div id="premium-modal" class="modal">
+    <!-- Error/Alert Modal (Reused for general alerts if needed) -->
+    <div id="alert-modal" class="modal">
         <div class="modal-content text-center">
             <span class="close-btn">&times;</span>
-            <i class="fa-solid fa-eye modal-icon text-accent"></i>
-            <h2>プレミアム機能「分析の魔眼」</h2>
-            <p>過去の報告データ（勝ちパターン）をAIが分析し、あなた専用の「高確率で当たるキーワードと構成」を提案します。</p>
-            <div style="background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 4px; margin: 1.5rem 0;" class="text-left text-muted">
-                <small>※現在バックエンド未実装のため、デモモードです。<br>この機能は将来のアップデート（SaaS版）で解放されます。</small>
-            </div>
-            <button class="btn btn-accent mt-3" id="btn-close-premium">閉じる</button>
+            <i class="fa-solid fa-triangle-exclamation modal-icon text-danger"></i>
+            <h2 id="alert-title">警告</h2>
+            <p id="alert-message">メッセージ</p>
+            <button class="btn btn-primary mt-3" id="btn-close-alert">閉じる</button>
         </div>
     </div>
 
