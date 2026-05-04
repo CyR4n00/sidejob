@@ -92,7 +92,7 @@ body::after {
 
 /* Sidebar */
 .sidebar {
-    width: 300px;
+    width: 260px;
     background-color: var(--bg-panel);
     backdrop-filter: blur(10px); /* Glassmorphism blur */
     -webkit-backdrop-filter: blur(10px);
@@ -101,23 +101,23 @@ body::after {
     box-shadow: var(--window-shadow);
     display: flex;
     flex-direction: column;
-    padding: 1.5rem 0;
+    padding: 1rem 0; /* Reduced padding */
     margin-right: 10px;
     z-index: 10;
 }
 
 .brand {
-    padding: 0 1.5rem 1.5rem;
+    padding: 0 1rem 1rem; /* Reduced padding */
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    font-size: 1.5rem;
+    gap: 0.5rem;
+    font-size: 1.2rem; /* Reduced font size */
     color: var(--text-main);
     border-bottom: var(--window-border);
 }
 
 .user-stats {
-    padding: 1.5rem;
+    padding: 1rem; /* Reduced padding */
     background-color: var(--bg-card);
     border-bottom: var(--window-border);
 }
@@ -125,21 +125,22 @@ body::after {
 .level-info {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    margin-bottom: 0.5rem;
+    gap: 0.5rem; /* Tightened gap */
+    margin-bottom: 0.25rem;
 }
 
 .level-badge {
     background-color: var(--gold);
     color: var(--bg-dark);
     font-weight: bold;
-    padding: 0.25rem 0.5rem;
+    padding: 0.15rem 0.4rem;
     border-radius: 4px;
-    font-size: 0.9rem;
+    font-size: 0.8rem; /* Reduced font size */
 }
 
 .title {
     font-weight: bold;
+    font-size: 0.9rem; /* Reduced font size */
 }
 
 .progress-bar-container {
@@ -171,21 +172,22 @@ body::after {
 
 /* Navigation */
 .nav-menu {
-    padding: 1rem 0;
+    padding: 0.5rem 0; /* Reduced padding */
     flex-grow: 1;
 }
 
 .nav-item {
     display: block;
-    padding: 0.75rem 1.5rem;
-    margin: 0.25rem 0.5rem;
+    padding: 0.5rem 1rem; /* Reduced padding */
+    margin: 0.15rem 0.5rem;
     border-radius: 4px;
     color: var(--text-main);
     text-decoration: none;
     transition: background-color 0.2s;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem; /* Tightened gap */
+    font-size: 0.9rem; /* Reduced font size */
 }
 
 .nav-item:hover {
