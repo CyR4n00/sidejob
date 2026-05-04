@@ -1,22 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=DotGothic16&display=swap');
 
 :root {
-    /* Occult Cyber/Retro Palette */
-    --bg-dark: #020202; /* Deepest black */
-    --bg-panel: #050505; /* Solid dark */
-    --bg-card: #0a0a0a; /* Slightly lighter dark */
-    --text-main: #cccccc; /* Muted off-white */
-    --text-muted: #555555;
-    --primary: #8b0000; /* Blood red / Danger */
+    /* Witch Trial / Collage Palette */
+    --bg-dark: #1a1618; /* Dark sepia/charcoal */
+    --bg-panel: #2b2528;
+    --bg-card: #f4ecd8; /* Old parchment paper */
+    --text-main: #2a1f22; /* Dark ink */
+    --text-muted: #5e4c52;
+    --primary: #8b0000; /* Blood red */
     --primary-hover: #aa0000;
-    --accent: #33ff33; /* Toxic CRT green */
-    --accent-hover: #55ff55;
-    --success: #0f380f; /* Old gameboy green */
-    --danger: #ff0000;
-    --gold: #ffb000; /* CRT Amber */
-    --border: #333333; /* Solid harsh border */
-    --window-border: 2px solid var(--border); /* Thick, solid borders instead of glass */
-    --window-shadow: none; /* Flat, unpolished look */
+    --accent: #5c1844; /* Deep witch purple */
+    --accent-hover: #7c2a5e;
+    --success: #3b522b; /* Muted forest green */
+    --danger: #8b0000;
+    --gold: #b8860b; /* Tarnished gold */
+    --border: #4a3b40;
+    --window-border: 2px dashed var(--border);
+    --window-shadow: 4px 4px 0px rgba(0,0,0,0.5); /* Harsh block shadow */
 }
 
 * {
@@ -26,62 +26,69 @@
 }
 
 body {
-    font-family: 'DotGothic16', monospace;
+    font-family: 'Sawarabi Mincho', serif; /* Creepy/elegant Japanese serif */
     background-color: var(--bg-dark);
-    color: var(--text-main);
+    background-image:
+        radial-gradient(circle at 50% 50%, rgba(92, 24, 68, 0.1) 0%, transparent 60%),
+        repeating-linear-gradient(45deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 2px, transparent 2px, transparent 8px);
+    color: #e0d8c8; /* Light text for main body, dark text inside cards */
     line-height: 1.6;
     letter-spacing: 1px;
     position: relative;
     overflow-x: hidden;
 }
 
-/* CRT Vignette & Heavy Scanlines */
+/* Witch Dimension Animated Background Elements */
 body::before {
-    content: "";
+    content: "✿ ⚙ ✦ ✧ ✤";
     position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100vh;
-    background: radial-gradient(circle at center, transparent 50%, rgba(0, 0, 0, 0.9) 100%);
-    pointer-events: none;
-    z-index: 998;
+    top: 10%; left: 5%;
+    font-size: 5rem;
+    color: rgba(92, 24, 68, 0.2);
+    writing-mode: vertical-rl;
+    animation: float 20s linear infinite;
+    z-index: -1;
 }
 
 body::after {
-    content: "";
+    content: "☠ ✂ ♛ ❀";
     position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100vh;
-    background: repeating-linear-gradient(
-        0deg,
-        rgba(0, 0, 0, 0.4),
-        rgba(0, 0, 0, 0.4) 1px,
-        transparent 1px,
-        transparent 3px
-    );
-    pointer-events: none;
-    z-index: 999;
+    bottom: 10%; right: 5%;
+    font-size: 8rem;
+    color: rgba(139, 0, 0, 0.1);
+    animation: float-reverse 25s linear infinite;
+    z-index: -1;
 }
 
-/* TV Static/Noise animation */
-@keyframes noise {
-    0%, 100% { background-position: 0 0; }
-    10% { background-position: -5% -10%; }
-    20% { background-position: -15% 5%; }
-    30% { background-position: 7% -25%; }
-    40% { background-position: 20% 25%; }
-    50% { background-position: -25% 10%; }
-    60% { background-position: 15% 5%; }
-    70% { background-position: 0% 15%; }
-    80% { background-position: 25% 35%; }
-    90% { background-position: -10% 10%; }
+@keyframes float {
+    0% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(100px) rotate(180deg); }
+    100% { transform: translateY(0) rotate(360deg); }
 }
-.noise-overlay {
-    position: fixed;
-    top: -50%; left: -50%; right: -50%; bottom: -50%;
-    width: 200%; height: 200vh;
-    background: transparent url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEUAAAAAAAABAwMEBQYHCQoLCwwNDg8QERITQcI4cwAAAClJREFUOMtjYMACGEMGxsYQBhUjIzCDrBGqjm4Q3UA0I0H6kSxiNA0YwYxYtSBRuMFogzGAIQAAqP8jL9aE+JgAAAAASUVORK5CYII=') repeat;
-    opacity: 0.05;
-    animation: noise 0.2s infinite;
-    pointer-events: none;
-    z-index: 0;
+@keyframes float-reverse {
+    0% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-100px) rotate(-180deg); }
+    100% { transform: translateY(0) rotate(-360deg); }
+}
+
+/* Typography specifics for Witch Theme */
+.witch-text {
+    font-family: 'Shippori Mincho B1', serif;
+    font-weight: 800;
+    letter-spacing: 5px;
+    transform: rotate(-2deg);
+    display: inline-block;
+}
+
+.witch-spin {
+    animation: spin-glitch 4s infinite linear;
+}
+@keyframes spin-glitch {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(90deg) scale(1.2); }
+    50% { transform: rotate(180deg) scale(0.8); }
+    75% { transform: rotate(270deg) scale(1.1); }
+    100% { transform: rotate(360deg); }
 }
 
 /* Custom Scrollbar for Premium Feel */
@@ -126,15 +133,16 @@ body::after {
 
 /* Sidebar */
 .sidebar {
-    width: 260px;
+    width: 280px;
     background-color: var(--bg-panel);
-    border-right: 2px solid var(--primary); /* Harsh red right border */
-    border-radius: 0; /* Sharp corners */
+    background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png');
+    border-right: 4px double var(--border);
     display: flex;
     flex-direction: column;
     padding: 1rem 0;
-    margin-right: 0; /* Flush with edge */
+    margin-right: 15px;
     z-index: 10;
+    box-shadow: 10px 0 20px rgba(0,0,0,0.8);
 }
 
 .brand {
@@ -142,16 +150,16 @@ body::after {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 1.1rem;
-    color: var(--primary); /* Blood red title */
-    border-bottom: 1px dashed var(--border);
-    text-shadow: 2px 0px 0px rgba(255,0,0,0.5), -1px 0px 0px rgba(0,255,255,0.5); /* Glitch text shadow */
+    font-size: 1.2rem;
+    color: var(--gold);
+    border-bottom: 2px solid var(--border);
+    font-family: 'Shippori Mincho B1', serif;
 }
 
 .user-stats {
     padding: 1rem;
-    background-color: var(--bg-dark);
-    border-bottom: 1px dashed var(--border);
+    background-color: rgba(0,0,0,0.3);
+    border-bottom: 2px solid var(--border);
 }
 
 .level-info {
@@ -162,13 +170,14 @@ body::after {
 }
 
 .level-badge {
-    background-color: transparent;
-    border: 1px solid var(--accent);
-    color: var(--accent);
+    background-color: var(--primary);
+    color: #fff;
     font-weight: bold;
     padding: 0.15rem 0.4rem;
-    border-radius: 0;
+    border-radius: 50% 10% 50% 10%; /* Uneven magic shape */
     font-size: 0.8rem;
+    transform: rotate(2deg);
+    display: inline-block;
 }
 
 .title {
@@ -211,16 +220,17 @@ body::after {
 
 .nav-item {
     display: grid;
-    grid-template-columns: 24px 1fr auto; /* Fixed width for icon, flex for text, auto for badges/locks */
+    grid-template-columns: 24px 1fr auto;
     align-items: center;
-    gap: 0.75rem; /* Space between icon and text */
+    gap: 0.75rem;
     padding: 0.6rem 1rem;
-    margin: 0.15rem 0.5rem;
-    border-radius: 4px;
-    color: var(--text-main);
+    margin: 0.25rem 0.5rem;
+    border-radius: 0;
+    color: #e0d8c8;
     text-decoration: none;
-    transition: background-color 0.2s, box-shadow 0.2s;
-    font-size: 0.9rem;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+    border-left: 3px solid transparent;
 }
 
 /* Ensure icons are centered within their grid column */
@@ -236,12 +246,16 @@ body::after {
 }
 
 .nav-item:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(92, 24, 68, 0.3);
+    border-left: 3px solid var(--accent);
+    transform: translateX(5px);
 }
 
 .nav-item.active {
-    background-color: var(--primary);
+    background-color: var(--accent);
     color: #fff;
+    border-left: 3px solid var(--primary);
+    box-shadow: var(--window-shadow);
 }
 
 .nav-item i:last-child {
@@ -253,10 +267,7 @@ body::after {
     flex-grow: 1;
     padding: 2rem;
     overflow-y: auto;
-    background-color: var(--bg-dark); /* Pure black for main area */
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
+    background-color: transparent;
     z-index: 10;
 }
 
@@ -289,37 +300,42 @@ body::after {
     color: var(--text-muted);
 }
 
-/* Cards & Forms */
-.quest-card, .settings-card, .report-card {
-    background-color: var(--bg-panel);
-    border: 1px solid var(--border);
-    border-radius: 0; /* Sharp, harsh boxes */
+/* Witch Cards (Collage Paper Style) */
+.witch-paper {
+    background-color: var(--bg-card);
+    background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png');
+    color: var(--text-main);
+    border: 1px solid #d0c0a0;
+    border-radius: 2px 15px 3px 20px; /* Uneven torn paper look */
     padding: 2rem;
-    box-shadow: none;
+    box-shadow: var(--window-shadow);
     position: relative;
+    transform: rotate(-0.5deg); /* Slight tilt */
 }
-/* Cyberpunk corner accents */
-.quest-card::before {
-    content: "";
-    position: absolute; top: -1px; left: -1px; width: 10px; height: 10px;
-    border-top: 2px solid var(--accent); border-left: 2px solid var(--accent);
+.witch-paper:nth-child(even) {
+    transform: rotate(0.5deg);
 }
-.quest-card::after {
-    content: "";
-    position: absolute; bottom: -1px; right: -1px; width: 10px; height: 10px;
-    border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent);
+
+/* Darker Frame Cards */
+.witch-frame {
+    background-color: var(--bg-panel);
+    color: #e0d8c8;
+    border: 4px double var(--accent);
+    padding: 2rem;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
 }
 
 .badge {
     display: inline-block;
-    padding: 0.25rem 0.5rem;
-    background-color: var(--bg-dark);
-    border: 1px solid var(--gold);
-    color: var(--gold);
+    padding: 0.15rem 0.5rem;
+    background-color: var(--primary);
+    color: #fff;
     border-radius: 0;
     font-size: 0.8rem;
     font-weight: bold;
     margin-bottom: 1rem;
+    transform: rotate(-3deg);
+    box-shadow: 2px 2px 0 #000;
 }
 
 .quest-card h2 { margin-bottom: 1rem; }
@@ -354,13 +370,14 @@ select,
 textarea {
     width: 100%;
     padding: 0.75rem;
-    background-color: #000;
-    border: 1px solid var(--border);
-    color: var(--accent); /* Terminal green text */
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 2px solid var(--text-muted);
+    color: var(--text-main);
     border-radius: 0;
     font-family: inherit;
     font-size: 1rem;
-    transition: all 0.1s;
+    transition: all 0.2s;
+    box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1);
 }
 
 textarea {
@@ -370,74 +387,60 @@ textarea {
 
 input:focus, select:focus, textarea:focus {
     outline: none;
-    border-color: var(--accent);
-    background-color: #050505;
-    box-shadow: none;
+    border-color: var(--primary);
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(139, 0, 0, 0.3);
 }
 
 /* Animations & Effects */
 .text-glow {
-    text-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent);
-}
-
-@keyframes pulse-glow {
-    0% { box-shadow: 0 0 5px var(--gold); }
-    50% { box-shadow: 0 0 20px var(--gold); }
-    100% { box-shadow: 0 0 5px var(--gold); }
+    text-shadow: 0 0 10px var(--accent), 0 0 20px var(--primary);
 }
 
 @keyframes gacha-spin {
-    0% { transform: scale(1) rotate(0deg); }
-    50% { transform: scale(1.2) rotate(180deg); }
-    100% { transform: scale(1) rotate(360deg); }
+    0% { transform: scale(1) rotate(0deg); filter: hue-rotate(0deg); }
+    50% { transform: scale(1.5) rotate(180deg); filter: hue-rotate(180deg); }
+    100% { transform: scale(1) rotate(360deg); filter: hue-rotate(360deg); }
 }
 
 .gacha-animating i {
     animation: gacha-spin 1.5s cubic-bezier(0.25, 0.1, 0.25, 1);
-    color: #fff !important;
-    text-shadow: 0 0 20px #fff, 0 0 40px var(--gold);
+    color: var(--primary) !important;
 }
 
 /* Buttons */
 .btn {
     display: inline-block;
     padding: 0.75rem 1.5rem;
-    background-color: transparent;
-    border: 2px solid var(--text-muted);
-    color: var(--text-main);
-    border-radius: 0; /* Sharp */
-    font-size: 1rem;
-    font-family: inherit;
+    background-color: var(--bg-panel);
+    border: 2px solid var(--border);
+    color: #e0d8c8;
+    border-radius: 0;
+    font-size: 1.1rem;
+    font-family: 'Shippori Mincho B1', serif;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.1s;
-    text-transform: uppercase;
+    box-shadow: 4px 4px 0px #000;
 }
 
 .btn:hover {
-    background-color: var(--text-muted);
-    color: #000;
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px #000;
 }
 
 .btn:active {
-    transform: translate(2px, 2px);
+    transform: translate(4px, 4px);
+    box-shadow: 0px 0px 0px #000;
 }
 .btn.full-width { width: 100%; }
 
-/* Override colors for occult vibe */
-.btn-primary { border-color: var(--primary); color: var(--primary); }
-.btn-primary:hover { background-color: var(--primary); color: #000; }
-
-.btn-accent { border-color: var(--accent); color: var(--accent); }
-.btn-accent:hover { background-color: var(--accent); color: #000; }
-
-.btn-success { border-color: var(--success); color: var(--success); }
-.btn-success:hover { background-color: var(--success); color: #fff; }
-
-.btn-secondary { background-color: var(--bg-card); color: white; border: 1px solid var(--border); }
-.btn-secondary:hover { background-color: #475569; }
-
-.btn-danger { background-color: var(--danger); color: white; }
+/* Color overrides for buttons */
+.btn-primary { background-color: var(--primary); border-color: #000; }
+.btn-accent { background-color: var(--accent); border-color: #000; }
+.btn-success { background-color: var(--success); border-color: #000; }
+.btn-secondary { background-color: var(--text-muted); border-color: #000; }
+.btn-danger { background-color: var(--danger); border-color: #000; }
 
 /* Modal */
 .modal {
@@ -453,15 +456,18 @@ input:focus, select:focus, textarea:focus {
 }
 
 .modal-content {
-    background-color: #000;
+    background-color: var(--bg-card);
+    background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png');
+    color: var(--text-main);
     margin: 15% auto;
     padding: 2.5rem;
-    border: 2px solid var(--primary);
-    border-radius: 0;
+    border: 4px double var(--accent);
+    border-radius: 2px 15px 3px 20px;
     width: 90%;
     max-width: 500px;
     position: relative;
-    box-shadow: 0 0 20px rgba(139, 0, 0, 0.5);
+    box-shadow: 10px 10px 30px rgba(0,0,0,0.8);
+    transform: rotate(1deg);
 }
 
 .close-btn {
