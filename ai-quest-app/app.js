@@ -58,7 +58,7 @@ const EXP_TABLE = {
 const TITLES = {
     1: "見習い錬金術師",
     3: "新米クリエイター",
-    5: "熟練のアフィリエイター",
+    5: "熟練アフィリエイター",
     8: "導かれし発信者",
     10: "コンテンツ王"
 };
@@ -231,7 +231,7 @@ function generateStrategyRecommendation() {
     const p = platforms[(dayOfYear + 3) % platforms.length];
     const c = categories[(dayOfYear + 5) % categories.length];
 
-    guideEl.innerHTML = `本日の特異点観測：<br><span class='text-accent font-bold'>【ターゲット: ${t}】</span>に対して、<span class='text-primary font-bold'>【${p}】</span>で<span class='text-gold font-bold'>「${c}」</span>のアプローチを試みると、強い共鳴(コンバージョン)が得られる可能性が高い。`;
+    guideEl.innerHTML = `本日のオススメ戦略：<br><span class='text-accent font-bold'>【${t}】</span>に向けて、<span class='text-primary font-bold'>【${p}】</span>で<span class='text-gold font-bold'>「${c}」</span>のアプローチを試すと、高い反響が得られそうです！`;
 }
 
 // --- Quest Logic ---
