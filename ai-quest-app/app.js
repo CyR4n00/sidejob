@@ -128,6 +128,9 @@ function updateUI() {
         skillSelect.value = currentVal;
     }
 
+    // Next Action Guide Update
+    updateNextActionGuide();
+
     // Title
     let currentTitle = TITLES[1];
     for (let lvl in TITLES) {
@@ -140,6 +143,41 @@ function updateUI() {
     if (historyCountEl) {
         historyCountEl.textContent = userState.questHistory.length;
     }
+
+// --- Next Action Guide Logic ---
+function updateNextActionGuide() {
+    const guideEl = document.getElementById('next-action-text');
+    if (!guideEl) return;
+
+    let advice = "";
+
+    // 優先度1: ガチャが引ける
+    if (userState.medals >= 10) {
+        advice = "メダルが10枚以上貯まっています！<br><span class='text-gold'>【ガチャ＆スキル】タブからガチャを回して新たな力を手に入れましょう。</span>";
+    }
+    // 優先度2: クエスト未完了でスタミナがある
+    else if (!userState.dailyQuestClaimed && userState.stamina > 0) {
+        advice = "本日のクエストが未完了です。<br><span class='text-primary'>下のクエストを選んで【コンテンツ錬成】に進みましょう！</span>";
+    }
+    // 優先度3: スタミナがないがクエスト報酬を受け取っていない (投稿・報告待ち)
+    else if (userState.stamina <= 0 && !userState.dailyQuestClaimed) {
+        advice = "スタミナが尽きました。<br><span class='text-accent'>作成した記事をSNSやブログに投稿し、【成果報告ギルド】で結果を報告しましょう。</span>";
+    }
+    // 優先度4: クエスト完了済みで魔眼が使える
+    else if (userState.dailyQuestClaimed && userState.questHistory.length >= 3) {
+        advice = "本日のクエストは完了しました。<br><span class='text-accent'>【魔眼 (分析)】タブを開いて、次の勝ちパターンを分析してみましょう！</span>";
+    }
+    // 優先度5: クエスト完了済みだが魔眼が使えない
+    else if (userState.dailyQuestClaimed) {
+        advice = "本日のクエストは完了しました。お疲れ様です！<br><span class='text-muted'>明日もログインして、新たなコンテンツを錬成しましょう。</span>";
+    }
+    // フェールセーフ
+    else {
+        advice = "自由にタブを行き来して、コンテンツ錬金術を探求しましょう！";
+    }
+
+    guideEl.innerHTML = advice;
+}
 
     // Update Claim Daily Button
     const claimBtn = document.getElementById('btn-claim-daily');
@@ -522,6 +560,106 @@ ${historyText}
     }
 }
 
+// --- Auto Macro (Node Automation) ---
+async function runAutoMacro() {
+    if (userState.stamina < 2) {
+        showAlert("スタミナ不足", "自動錬成陣の起動にはスタミナが2必要です。");
+        return;
+    }
+    if (!userState.apiKey || userState.apiKey === "********") {
+        showAlert("APIキー未設定", "自動錬成にはAPIキーの設定が必要です。");
+        return;
+    }
+
+    const category = document.getElementById('macro-category').value;
+    const btn = document.getElementById('btn-start-macro');
+    const nodes = [document.getElementById('node-1'), document.getElementById('node-2'), document.getElementById('node-3')];
+    const outputs = [
+        nodes[0].querySelector('.node-output'),
+        nodes[1].querySelector('.node-output'),
+        nodes[2].querySelector('.node-output')
+    ];
+    const copyBtn = document.getElementById('btn-copy-macro');
+
+    // Reset UI
+    nodes.forEach(n => { n.style.opacity = '0.5'; n.style.boxShadow = 'none'; });
+    outputs.forEach(o => { o.style.display = 'none'; o.innerHTML = ''; o.value = ''; });
+    copyBtn.style.display = 'none';
+
+    userState.stamina -= 2;
+    await saveState();
+    updateUI();
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 錬成陣 稼働中...';
+
+    // Helper fetch function
+    async function fetchAI(aiPrompt) {
+        const provider = userState.aiProvider || 'openai';
+        if (provider === 'openai') {
+            const res = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userState.apiKey}` },
+                body: JSON.stringify({ model: "gpt-3.5-turbo", messages: [{ role: "user", content: aiPrompt }], temperature: 0.7 })
+            });
+            if (!res.ok) throw new Error("API Error");
+            const data = await res.json(); return data.choices[0].message.content;
+        } else {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${userState.apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: aiPrompt }] }] })
+            });
+            if (!res.ok) throw new Error("API Error");
+            const data = await res.json(); return data.candidates[0].content.parts[0].text;
+        }
+    }
+
+    try {
+        // --- NODE 1: Brainstorm ---
+        nodes[0].style.opacity = '1';
+        nodes[0].style.boxShadow = '0 0 15px var(--primary)';
+        outputs[0].style.display = 'block';
+        outputs[0].textContent = "AIがトレンドを思考中...";
+
+        let keyword = await fetchAI(`アフィリエイトの「${category}」ジャンルで、現在SNSでバズりやすい、あるいは検索されやすいニッチなキーワードを1つだけ提案してください。理由や説明は不要です。キーワードのみを出力してください。`);
+        keyword = keyword.trim();
+        outputs[0].innerHTML = `<span class="text-gold font-bold">抽出キーワード:</span> ${keyword}`;
+        nodes[0].style.boxShadow = 'none';
+
+        // --- NODE 2: Research ---
+        nodes[1].style.opacity = '1';
+        nodes[1].style.boxShadow = '0 0 15px var(--accent)';
+        outputs[1].style.display = 'block';
+        outputs[1].textContent = "キーワードを深掘りリサーチ中...";
+
+        let research = await fetchAI(`キーワード「${keyword}」について、読者が抱えている深い悩み、このキーワードに関連する商品のメリット・デメリットを箇条書きで簡潔にまとめてください。`);
+        outputs[1].innerHTML = `<span class="text-gold font-bold">リサーチ完了:</span><br>${research.replace(/\n/g, '<br>')}`;
+        nodes[1].style.boxShadow = 'none';
+
+        // --- NODE 3: Generation ---
+        nodes[2].style.opacity = '1';
+        nodes[2].style.boxShadow = '0 0 15px var(--gold)';
+        outputs[2].style.display = 'block';
+        outputs[2].value = "最終記事を錬成中...";
+
+        let article = await fetchAI(`以下のリサーチ結果を元に、読者の購買意欲を高めるアフィリエイト用ブログ記事（見出し付き）を作成してください。\n\n【テーマ】${keyword}\n【リサーチ結果】\n${research}`);
+        outputs[2].value = article;
+        nodes[2].style.boxShadow = '0 0 20px var(--success)';
+        copyBtn.style.display = 'block';
+
+    } catch (error) {
+        console.error(error);
+        showAlert("マクロ実行エラー", "自動錬成中にエラーが発生しました。");
+        userState.stamina += 2; // Refund
+        await saveState();
+        updateUI();
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-play"></i> 錬成陣を起動する (スタミナ -2)';
+    }
+}
+
 // --- Gamification (EXP & Leveling) ---
 async function submitReport() {
     const keyword = document.getElementById('input-keyword').value || "不明なクエスト";
@@ -603,6 +741,23 @@ function setupEventListeners() {
     document.getElementById('btn-submit-report').addEventListener('click', submitReport);
     document.getElementById('btn-roll-gacha').addEventListener('click', rollGacha);
     document.getElementById('btn-activate-magic-eye').addEventListener('click', activateMagicEye);
+
+    const btnStartMacro = document.getElementById('btn-start-macro');
+    if (btnStartMacro) btnStartMacro.addEventListener('click', runAutoMacro);
+
+    const btnCopyMacro = document.getElementById('btn-copy-macro');
+    if (btnCopyMacro) {
+        btnCopyMacro.addEventListener('click', () => {
+            const text = document.querySelector('#node-3 .node-output').value;
+            if(text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    const originalHTML = btnCopyMacro.innerHTML;
+                    btnCopyMacro.innerHTML = '<i class="fa-solid fa-check"></i> コピー完了!';
+                    setTimeout(() => { btnCopyMacro.innerHTML = originalHTML; }, 2000);
+                });
+            }
+        });
+    }
 
     const claimBtn = document.getElementById('btn-claim-daily');
     if(claimBtn) {

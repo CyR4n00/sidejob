@@ -41,8 +41,9 @@
                 <a href="#" class="nav-item active" data-target="quest-board"><i class="fa-solid fa-scroll"></i> <span>クエストボード</span></a>
                 <a href="#" class="nav-item" data-target="alchemy-forge"><i class="fa-solid fa-flask"></i> <span>コンテンツ錬成</span></a>
                 <a href="#" class="nav-item" data-target="report-guild"><i class="fa-solid fa-chart-line"></i> <span>成果報告 (EXP獲得)</span></a>
-                <a href="#" class="nav-item" data-target="gacha-shop"><i class="fa-solid fa-gem"></i> <span>ガチャ＆スキル</span> <span class="badge" style="padding:2px 5px; font-size:0.7rem; margin:0;">NEW</span></a>
-                <a href="#" class="nav-item" data-target="magic-eye-feature"><i class="fa-solid fa-eye text-accent"></i> <span class="text-glow">魔眼 (分析)</span> <span class="badge" style="padding:2px 5px; font-size:0.7rem; margin:0; background:rgba(235, 69, 158, 0.2); color:var(--accent);">NEW</span></a>
+                <a href="#" class="nav-item" data-target="gacha-shop"><i class="fa-solid fa-gem"></i> <span>ガチャ＆スキル</span></a>
+                <a href="#" class="nav-item" data-target="magic-eye-feature"><i class="fa-solid fa-eye text-accent"></i> <span class="text-glow">魔眼 (分析)</span></a>
+                <a href="#" class="nav-item" data-target="auto-macro-feature"><i class="fa-solid fa-diagram-project text-gold"></i> <span class="text-glow">自動錬成陣</span> <span class="badge" style="padding:2px 5px; font-size:0.7rem; margin:0; background:rgba(250, 166, 26, 0.2); color:var(--gold);">NEW</span></a>
                 <a href="#" class="nav-item" data-target="settings"><i class="fa-solid fa-gear"></i> <span>設定</span></a>
             </nav>
         </aside>
@@ -55,6 +56,16 @@
                     <h1>本日のクエスト</h1>
                     <p>AIが選んだ今日のテーマでコンテンツを作成し、経験値を稼ごう！</p>
                 </header>
+
+                <!-- Next Action Guide Banner -->
+                <div class="quest-card mb-4" style="background: rgba(88, 101, 242, 0.15); border: 1px solid var(--primary); padding: 1.5rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem;">
+                    <i class="fa-solid fa-compass text-primary text-glow" style="font-size: 2.5rem;"></i>
+                    <div>
+                        <h3 class="text-primary mb-1" style="font-size: 1rem;">ナビゲーターの導き</h3>
+                        <p id="next-action-text" style="font-size: 1.1rem; font-weight: bold; margin: 0;">情報を読み込んでいます...</p>
+                    </div>
+                </div>
+
                 <div class="quest-card mb-4" style="margin-bottom: 2rem;">
                     <div class="quest-type badge" style="background-color: rgba(59, 130, 246, 0.2); color: var(--primary);">メインクエスト (A)</div>
                     <h2 id="daily-quest-title">...読み込み中...</h2>
@@ -260,6 +271,62 @@
                                 <button class="btn btn-primary" id="btn-accept-custom-quest">この特注クエストを受注して錬成所へ</button>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Auto Alchemy Array (Macro) Section -->
+            <section id="auto-macro-feature" class="content-section">
+                <header class="section-header">
+                    <h1><i class="fa-solid fa-diagram-project text-gold text-glow"></i> 自動錬成陣 (マクロ)</h1>
+                    <p>複数のAIノードを連結し、「リサーチから記事生成まで」を全自動で実行する高度な錬金術です。</p>
+                </header>
+
+                <div class="quest-card mb-4">
+                    <h3 class="mb-3 text-gold">陣形の構築 (設定)</h3>
+                    <div class="form-group">
+                        <label>アフィリエイト・カテゴリー (起点)</label>
+                        <select id="macro-category">
+                            <option value="金融・投資">金融・投資 (クレカ/証券)</option>
+                            <option value="ガジェット・PC">ガジェット・PC関連</option>
+                            <option value="美容・健康">美容・健康・ダイエット</option>
+                            <option value="キャリア・転職">キャリア・転職・副業</option>
+                            <option value="アダルト・恋愛">アダルト・恋愛・マッチング</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary full-width mt-2" id="btn-start-macro" style="font-size: 1.1rem; padding: 1rem;">
+                        <i class="fa-solid fa-play"></i> 錬成陣を起動する (スタミナ -2)
+                    </button>
+                </div>
+
+                <!-- Node Graph UI -->
+                <div class="macro-graph-container" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 2rem; position: relative;">
+                    <!-- Node 1 -->
+                    <div class="macro-node" id="node-1" style="background: var(--bg-card); border: 2px solid var(--border); padding: 1rem; border-radius: 8px; margin-bottom: 2rem; opacity: 0.5;">
+                        <h4 class="text-primary"><i class="fa-solid fa-lightbulb"></i> ノード1: テーマ考案</h4>
+                        <p class="text-small text-muted mb-2">指定カテゴリから「今バズりやすい」ニッチなキーワードをAIが1つ考案します。</p>
+                        <div class="node-output text-small" style="display: none; background: #000; padding: 0.5rem; border-radius: 4px;"></div>
+                    </div>
+
+                    <!-- Arrow 1 -->
+                    <div class="text-center text-muted" style="margin-top: -1.5rem; margin-bottom: 0.5rem; font-size: 1.5rem;"><i class="fa-solid fa-arrow-down"></i></div>
+
+                    <!-- Node 2 -->
+                    <div class="macro-node" id="node-2" style="background: var(--bg-card); border: 2px solid var(--border); padding: 1rem; border-radius: 8px; margin-bottom: 2rem; opacity: 0.5;">
+                        <h4 class="text-accent"><i class="fa-solid fa-magnifying-glass"></i> ノード2: 深掘りリサーチ</h4>
+                        <p class="text-small text-muted mb-2">考案されたキーワードの「読者の悩み・メリット・デメリット」をAIが深掘り調査します。</p>
+                        <div class="node-output text-small" style="display: none; background: #000; padding: 0.5rem; border-radius: 4px;"></div>
+                    </div>
+
+                    <!-- Arrow 2 -->
+                    <div class="text-center text-muted" style="margin-top: -1.5rem; margin-bottom: 0.5rem; font-size: 1.5rem;"><i class="fa-solid fa-arrow-down"></i></div>
+
+                    <!-- Node 3 -->
+                    <div class="macro-node" id="node-3" style="background: var(--bg-card); border: 2px solid var(--border); padding: 1rem; border-radius: 8px; opacity: 0.5;">
+                        <h4 class="text-gold"><i class="fa-solid fa-pen-nib"></i> ノード3: 最終記事錬成</h4>
+                        <p class="text-small text-muted mb-2">リサーチ結果を元に、そのままコピペして使える見出し付きの高品質な記事を生成します。</p>
+                        <textarea class="node-output mt-2" style="display: none; height: 150px; font-size: 0.9rem;" readonly></textarea>
+                        <button class="btn btn-secondary mt-2 w-100" id="btn-copy-macro" style="display: none;"><i class="fa-solid fa-copy"></i> 結果をコピーする</button>
                     </div>
                 </div>
             </section>
