@@ -375,7 +375,7 @@ function generateStrategyRecommendation() {
   const p = platforms[(dayOfYear + 3) % platforms.length];
   const c = categories[(dayOfYear + 5) % categories.length];
 
-  guideEl.innerHTML = `本日のオススメ戦略：<br><span class='text-accent font-bold'>【${t}】</span>に向けて、<span class='text-primary font-bold'>【${p}】</span>で<span class='text-gold font-bold'>「${c}」</span>のアプローチを試すと、高い反響が得られそうです！`;
+  guideEl.innerHTML = `<span style="color: var(--text-main);">本日のオススメ戦略：</span><br><span class='text-accent font-bold'>【${t}】</span><span style="color: var(--text-main);">に向けて、</span><span class='text-primary font-bold'>【${p}】</span><span style="color: var(--text-main);">で</span><span class='text-gold font-bold'>「${c}」</span><span style="color: var(--text-main);">のアプローチを試すと、高い反響が得られそうです！</span>`;
 }
 
 // --- Quest Logic ---
