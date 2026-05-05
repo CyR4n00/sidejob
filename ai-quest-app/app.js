@@ -92,9 +92,13 @@ const DAILY_QUESTS = [
 document.addEventListener('DOMContentLoaded', async () => {
     // Check initial auth session
     const { data: { session } } = await supabase.auth.getSession();
+
     if (session) {
         await handleLoginSuccess(session.user);
     } else {
+        // Show login form, hide loading
+        document.getElementById('auth-loading').style.display = 'none';
+        document.getElementById('auth-form').style.display = 'block';
         document.getElementById('auth-screen').style.display = 'flex';
         document.getElementById('main-app').style.display = 'none';
     }
@@ -103,6 +107,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     supabase.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_OUT') {
             currentUser = null;
+            document.getElementById('auth-loading').style.display = 'none';
+            document.getElementById('auth-form').style.display = 'block';
             document.getElementById('auth-screen').style.display = 'flex';
             document.getElementById('main-app').style.display = 'none';
         }
@@ -715,8 +721,8 @@ async function submitReport() {
 
     userState.exp += expGained;
 
-    // Log to mock DB history
-    await MockDB.logQuestResult({
+    // Log to Cloud DB history
+    await CloudDB.logQuestResult({
         date: new Date().toISOString(),
         keyword: keyword,
         impressions: imp,

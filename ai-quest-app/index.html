@@ -20,31 +20,41 @@
 </head>
 <body>
     <!-- Auth Screen Overlay -->
-    <div id="auth-screen" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-dark); z-index: 9999; flex-direction: column; justify-content: center; align-items: center;">
-        <div class="quest-card witch-frame" style="max-width: 400px; width: 90%; background-color: var(--bg-panel);">
-            <div class="text-center mb-4">
-                <i class="fa-solid fa-scissors text-accent witch-spin" style="font-size: 3rem;"></i>
-                <h2 class="mt-2 text-primary witch-text">魔女裁判</h2>
-                <p class="text-muted text-small">CONTENT ALCHEMIST</p>
+    <div id="auth-screen" style="display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-dark); z-index: 9999; flex-direction: column; justify-content: center; align-items: center;">
+        <div class="quest-card witch-frame" style="max-width: 400px; width: 90%; background-color: var(--bg-panel); position: relative;">
+
+            <!-- Loading State -->
+            <div id="auth-loading" class="text-center" style="display: block;">
+                <i class="fa-solid fa-compact-disc fa-spin text-accent" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                <h3 class="text-gold text-glow">魂の契約を確認中...</h3>
             </div>
 
-            <div class="form-group">
-                <label>魂の署名 (メールアドレス)</label>
-                <input type="text" id="auth-email" placeholder="email@example.com">
-            </div>
-            <div class="form-group">
-                <label>真言 (パスワード)</label>
-                <input type="password" id="auth-password" placeholder="6文字以上">
-            </div>
+            <!-- Login Form -->
+            <div id="auth-form" style="display: none;">
+                <div class="text-center mb-4">
+                    <i class="fa-solid fa-scissors text-accent witch-spin" style="font-size: 3rem;"></i>
+                    <h2 class="mt-2 text-primary witch-text">魔女裁判</h2>
+                    <p class="text-muted text-small">CONTENT ALCHEMIST</p>
+                </div>
 
-            <div id="auth-error-msg" class="text-danger text-small mb-3" style="display: none;"></div>
+                <div class="form-group">
+                    <label>魂の署名 (メールアドレス)</label>
+                    <input type="text" id="auth-email" placeholder="email@example.com">
+                </div>
+                <div class="form-group">
+                    <label>真言 (パスワード)</label>
+                    <input type="password" id="auth-password" placeholder="6文字以上">
+                </div>
 
-            <button class="btn btn-primary full-width mb-3" id="btn-login">
-                <i class="fa-solid fa-key"></i> 扉を開く (ログイン)
-            </button>
-            <button class="btn btn-secondary full-width" id="btn-signup">
-                <i class="fa-solid fa-pen-nib"></i> 契約を結ぶ (新規登録)
-            </button>
+                <div id="auth-error-msg" class="text-danger text-small mb-3" style="display: none;"></div>
+
+                <button class="btn btn-primary full-width mb-3" id="btn-login">
+                    <i class="fa-solid fa-key"></i> 扉を開く (ログイン)
+                </button>
+                <button class="btn btn-secondary full-width" id="btn-signup">
+                    <i class="fa-solid fa-pen-nib"></i> 契約を結ぶ (新規登録)
+                </button>
+            </div>
         </div>
     </div>
 
