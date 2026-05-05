@@ -1,8 +1,14 @@
 // ==========================================
-// AI Quest - Game Logic & Core Functions
+// Content Alchemist - Game Logic & SaaS Core
 // ==========================================
 
-// --- State Management (Mock DB Architecture) ---
+// --- Supabase Client Initialization ---
+const SUPABASE_URL = 'https://gezgodtoczchojawxdds.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlemdvZHRvY3pjaG9qYXd4ZGRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5Njg0MzEsImV4cCI6MjA5MzU0NDQzMX0.QwwKC43x-ni-NKB8fjkWTWTCWjW3GkEDMws0R9qqeRI';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let currentUser = null;
+
+// --- State Management (Cloud Save Architecture) ---
 const DEFAULT_STATE = {
     level: 1,
     exp: 0,
@@ -26,17 +32,29 @@ const DEFAULT_STATE = {
 
 let userState = { ...DEFAULT_STATE };
 
-// Mock Database API (Future-proofing for Supabase integration)
-const MockDB = {
+// Supabase Database API (Using Auth User Metadata for MVP Cloud Saves)
+const CloudDB = {
     async getUser() {
-        const saved = localStorage.getItem('aiQuestState');
-        return saved ? { ...DEFAULT_STATE, ...JSON.parse(saved) } : { ...DEFAULT_STATE };
+        if (!currentUser) return { ...DEFAULT_STATE };
+        const metadata = currentUser.user_metadata;
+        if (metadata && metadata.gameState) {
+            return { ...DEFAULT_STATE, ...metadata.gameState };
+        }
+        // Fallback or new user
+        return { ...DEFAULT_STATE };
     },
     async saveUser(state) {
-        localStorage.setItem('aiQuestState', JSON.stringify(state));
+        if (!currentUser) return;
+        // Supabase user metadata update merges the object
+        const { data, error } = await supabase.auth.updateUser({
+            data: { gameState: state }
+        });
+        if (error) {
+            console.error("Cloud Save Failed:", error);
+            showAlert("セーブエラー", "クラウドへのデータ保存に失敗しました。");
+        }
     },
     async logQuestResult(record) {
-        // record: { date, keyword, impressions, conversions, expGained }
         userState.questHistory.push(record);
         await this.saveUser(userState);
     }
@@ -72,15 +90,42 @@ const DAILY_QUESTS = [
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadState();
+    // Check initial auth session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+        await handleLoginSuccess(session.user);
+    } else {
+        document.getElementById('auth-screen').style.display = 'flex';
+        document.getElementById('main-app').style.display = 'none';
+    }
+
+    // Listen for auth changes (logout from other tabs, etc.)
+    supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT') {
+            currentUser = null;
+            document.getElementById('auth-screen').style.display = 'flex';
+            document.getElementById('main-app').style.display = 'none';
+        }
+    });
+
     setupNavigation();
     setupDailyQuest();
-    updateUI();
     setupEventListeners();
 });
 
+async function handleLoginSuccess(user) {
+    currentUser = user;
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'flex';
+    document.getElementById('current-user-email').textContent = user.email;
+
+    // Load state from cloud
+    await loadState();
+    updateUI();
+}
+
 async function loadState() {
-    userState = await MockDB.getUser();
+    userState = await CloudDB.getUser();
 
     // Check daily reset (stamina and quest)
     const today = new Date().toDateString();
@@ -93,7 +138,7 @@ async function loadState() {
 }
 
 async function saveState() {
-    await MockDB.saveUser(userState);
+    await CloudDB.saveUser(userState);
 }
 
 // --- UI Updates ---
@@ -742,6 +787,64 @@ function setupEventListeners() {
             }
         });
     }
+
+    // Auth Buttons
+    const emailInput = document.getElementById('auth-email');
+    const passInput = document.getElementById('auth-password');
+    const authError = document.getElementById('auth-error-msg');
+
+    const handleAuth = async (type) => {
+        authError.style.display = 'none';
+        const email = emailInput.value;
+        const password = passInput.value;
+
+        if (!email || !password) {
+            authError.textContent = "メールアドレスとパスワードを入力してください。";
+            authError.style.display = 'block';
+            return;
+        }
+
+        const btn = type === 'login' ? document.getElementById('btn-login') : document.getElementById('btn-signup');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 通信中...';
+        btn.disabled = true;
+
+        try {
+            let error;
+            if (type === 'login') {
+                const res = await supabase.auth.signInWithPassword({ email, password });
+                error = res.error;
+                if (!error && res.data.user) {
+                    await handleLoginSuccess(res.data.user);
+                }
+            } else {
+                const res = await supabase.auth.signUp({ email, password });
+                error = res.error;
+                if (!error && res.data.user) {
+                    if (res.data.user.identities && res.data.user.identities.length === 0) {
+                        throw new Error("このメールアドレスは既に登録されています。");
+                    }
+                    await handleLoginSuccess(res.data.user);
+                }
+            }
+
+            if (error) throw error;
+
+        } catch (err) {
+            authError.textContent = err.message || "エラーが発生しました。";
+            authError.style.display = 'block';
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    };
+
+    document.getElementById('btn-login').addEventListener('click', () => handleAuth('login'));
+    document.getElementById('btn-signup').addEventListener('click', () => handleAuth('signup'));
+
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+        await supabase.auth.signOut();
+    });
 
     const claimBtn = document.getElementById('btn-claim-daily');
     if(claimBtn) {
