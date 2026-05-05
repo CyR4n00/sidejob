@@ -5,7 +5,7 @@
 // --- Supabase Client Initialization ---
 const SUPABASE_URL = 'https://gezgodtoczchojawxdds.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlemdvZHRvY3pjaG9qYXd4ZGRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5Njg0MzEsImV4cCI6MjA5MzU0NDQzMX0.QwwKC43x-ni-NKB8fjkWTWTCWjW3GkEDMws0R9qqeRI';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 
 // --- State Management (Cloud Save Architecture) ---
@@ -46,7 +46,7 @@ const CloudDB = {
     async saveUser(state) {
         if (!currentUser) return;
         // Supabase user metadata update merges the object
-        const { data, error } = await supabase.auth.updateUser({
+        const { data, error } = await supabaseClient.auth.updateUser({
             data: { gameState: state }
         });
         if (error) {
@@ -91,7 +91,7 @@ const DAILY_QUESTS = [
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
     // Check initial auth session
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await supabaseClient.auth.getSession();
 
     if (session) {
         await handleLoginSuccess(session.user);
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Listen for auth changes (logout from other tabs, etc.)
-    supabase.auth.onAuthStateChange((event, session) => {
+    supabaseClient.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_OUT') {
             currentUser = null;
             document.getElementById('auth-loading').style.display = 'none';
@@ -818,13 +818,13 @@ function setupEventListeners() {
         try {
             let error;
             if (type === 'login') {
-                const res = await supabase.auth.signInWithPassword({ email, password });
+                const res = await supabaseClient.auth.signInWithPassword({ email, password });
                 error = res.error;
                 if (!error && res.data.user) {
                     await handleLoginSuccess(res.data.user);
                 }
             } else {
-                const res = await supabase.auth.signUp({ email, password });
+                const res = await supabaseClient.auth.signUp({ email, password });
                 error = res.error;
                 if (!error && res.data.user) {
                     if (res.data.user.identities && res.data.user.identities.length === 0) {
@@ -849,7 +849,7 @@ function setupEventListeners() {
     document.getElementById('btn-signup').addEventListener('click', () => handleAuth('signup'));
 
     document.getElementById('btn-logout').addEventListener('click', async () => {
-        await supabase.auth.signOut();
+        await supabaseClient.auth.signOut();
     });
 
     const claimBtn = document.getElementById('btn-claim-daily');
@@ -890,12 +890,15 @@ function setupEventListeners() {
         setTimeout(() => { msg.style.display = "none"; }, 3000);
     });
 
-    document.getElementById('btn-reset-data').addEventListener('click', () => {
-        if(confirm("本当にデータをリセットしますか？レベルやEXPがすべて失われます。")) {
-            userState = { ...DEFAULT_STATE };
-            saveState();
-            updateUI();
-            alert("データを初期化しました。");
-        }
-    });
+    const resetBtn = document.getElementById('btn-reset-data');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            if(confirm("本当にデータをリセットしますか？レベルやEXPがすべて失われます。")) {
+                userState = { ...DEFAULT_STATE };
+                saveState();
+                updateUI();
+                alert("データを初期化しました。");
+            }
+        });
+    }
 }
