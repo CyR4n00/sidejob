@@ -46,23 +46,54 @@ let localSettings = { ...DEFAULT_LOCAL_SETTINGS };
 // Supabase Database API (Using Auth User Metadata for MVP Cloud Saves)
 const CloudDB = {
   async getUser() {
-    if (!currentUser) return { ...DEFAULT_STATE };
-    const metadata = currentUser.user_metadata;
-    if (metadata && metadata.gameState) {
-      return { ...DEFAULT_STATE, ...metadata.gameState };
+    let state = { ...DEFAULT_STATE };
+    if (!currentUser) {
+      const local = localStorage.getItem("aiQuestLocalGameState");
+      if (local) {
+        try { state = { ...state, ...JSON.parse(local) }; } catch(e){}
+      }
+      return state;
     }
+    const metadata = currentUser.user_metadata;
+    let cloudState = null;
+    if (metadata && metadata.gameState) {
+      cloudState = metadata.gameState;
+    }
+    const localStr = localStorage.getItem("aiQuestLocalGameState");
+    let localState = null;
+    if (localStr) {
+      try { localState = JSON.parse(localStr); } catch(e){}
+    }
+
+    // Simple resolution: if cloud has state, prefer it. If cloud failed to load, try local.
+    if (cloudState) {
+      return { ...DEFAULT_STATE, ...cloudState };
+    } else if (localState) {
+      return { ...DEFAULT_STATE, ...localState };
+    }
+
     // Fallback or new user
-    return { ...DEFAULT_STATE };
+    return state;
   },
   async saveUser(state) {
-    if (!currentUser) return;
+    if (!currentUser) {
+      localStorage.setItem("aiQuestLocalGameState", JSON.stringify(state));
+      return;
+    }
+    // Backup to local storage in case of cloud failure
+    localStorage.setItem("aiQuestLocalGameState", JSON.stringify(state));
+
     // Supabase user metadata update merges the object
-    const { data, error } = await supabaseClient.auth.updateUser({
-      data: { gameState: state },
-    });
-    if (error) {
-      console.error("Cloud Save Failed:", error);
-      showAlert("セーブエラー", "クラウドへのデータ保存に失敗しました。");
+    try {
+      const { data, error } = await supabaseClient.auth.updateUser({
+        data: { gameState: state },
+      });
+      if (error) {
+        console.warn("Cloud Save Failed, state is saved locally. Error:", error);
+        // Supress the alert to avoid blocking gameplay, log it instead.
+      }
+    } catch(err) {
+      console.warn("Network error during cloud save:", err);
     }
   },
   async logQuestResult(record) {
@@ -375,7 +406,7 @@ function generateStrategyRecommendation() {
   const p = platforms[(dayOfYear + 3) % platforms.length];
   const c = categories[(dayOfYear + 5) % categories.length];
 
-  guideEl.innerHTML = `<span style="color: var(--text-main);">本日のオススメ戦略：</span><br><span class='text-accent font-bold'>【${t}】</span><span style="color: var(--text-main);">に向けて、</span><span class='text-primary font-bold'>【${p}】</span><span style="color: var(--text-main);">で</span><span class='text-gold font-bold'>「${c}」</span><span style="color: var(--text-main);">のアプローチを試すと、高い反響が得られそうです！</span>`;
+  guideEl.innerHTML = `<span style="color: inherit;">本日のオススメ戦略：</span><br><span class='text-accent font-bold'>【${t}】</span><span style="color: inherit;">に向けて、</span><span class='text-primary font-bold'>【${p}】</span><span style="color: inherit;">で</span><span class='text-gold font-bold'>「${c}」</span><span style="color: inherit;">のアプローチを試すと、高い反響が得られそうです！</span>`;
 }
 
 // --- Quest Logic ---
@@ -628,8 +659,8 @@ async function rollGacha() {
   resultBox.innerHTML = `
         <h3 class="text-gold">✨ スキル獲得！ ✨</h3>
         <div style="font-size: 2rem; margin: 1rem 0;">${wonItem.icon}</div>
-        <p style="color: var(--text-main);"><strong>${wonItem.name}</strong> を獲得しました！</p>
-        <p class="text-small mt-2" style="color: var(--text-main);">コンテンツ錬成画面でセットして使用できます。</p>
+        <p style="color: inherit;"><strong>${wonItem.name}</strong> を獲得しました！</p>
+        <p class="text-small mt-2" style="color: inherit;">コンテンツ錬成画面でセットして使用できます。</p>
     `;
   resultBox.style.display = "block";
   btn.disabled = false;
