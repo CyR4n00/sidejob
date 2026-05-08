@@ -805,6 +805,8 @@ async function runAutoMacro() {
   }
 
   const category = document.getElementById("macro-category").value;
+  const charLimit = document.getElementById("macro-char-limit").value || "指定なし";
+  const pastData = document.getElementById("macro-past-data").value || "";
   const btn = document.getElementById("btn-start-macro");
   const nodes = [
     document.getElementById("node-1"),
@@ -879,9 +881,20 @@ async function runAutoMacro() {
     outputs[0].style.display = "block";
     outputs[0].textContent = "AIがトレンドを思考中...";
 
-    let keyword = await fetchAI(
-      `アフィリエイトの「${category}」ジャンルで、現在SNSでバズりやすい、あるいは検索されやすいニッチなキーワードを1つだけ提案してください。理由や説明は不要です。キーワードのみを出力してください。`,
-    );
+    let contextPrompt = "";
+    if (pastData) {
+      contextPrompt = `\n\n【過去の成功データ・トーン＆マナー分析用】\n以下の過去の成功データを参考に、同じような文体・リズム・魅力的な表現を踏襲してください。\n${pastData}\n`;
+    }
+
+    let keywordPrompt = `アフィリエイトの「${category}」ジャンルで、現在SNSでバズりやすい、あるいは検索されやすいニッチなキーワードを1つだけ提案してください。理由や説明は不要です。キーワードのみを出力してください。`;
+
+    if (category.startsWith("X_affiliate")) {
+        keywordPrompt = `「${category.split('_')[2]}」ジャンルにおいて、X（旧Twitter）でバズりやすく、思わずクリックしたくなるような「フック（興味付け）の強いテーマ」を1つだけ提案してください。理由不要、テーマ名のみ。`;
+    } else if (category.startsWith("note_")) {
+        keywordPrompt = `「note」で読まれやすい、自身の深い体験談や体系的なノウハウに基づく「記事の切り口」を1つ提案してください。理由不要、切り口のみ。`;
+    }
+
+    let keyword = await fetchAI(keywordPrompt);
     keyword = keyword.trim();
     outputs[0].innerHTML = `<span class="text-gold font-bold">抽出キーワード:</span> ${keyword}`;
     nodes[0].style.boxShadow = "none";
@@ -904,9 +917,17 @@ async function runAutoMacro() {
     outputs[2].style.display = "block";
     outputs[2].value = "最終記事を錬成中...";
 
-    let article = await fetchAI(
-      `以下のリサーチ結果を元に、読者の購買意欲を高めるアフィリエイト用ブログ記事（見出し付き）を作成してください。\n\n【テーマ】${keyword}\n【リサーチ結果】\n${research}`,
-    );
+    let finalPrompt = `以下のリサーチ結果を元に、読者の購買意欲を高めるアフィリエイト用ブログ記事（見出し付き）を作成してください。\n\n【テーマ】${keyword}\n【リサーチ結果】\n${research}\n\n【文字数目安】約${charLimit}文字${contextPrompt}`;
+
+    if (category.startsWith("X_affiliate")) {
+        finalPrompt = `以下のリサーチ結果を元に、X（旧Twitter）用のツリー（スレッド）形式の投稿を作成してください。\nルール：\n1. 1投稿目は強烈なフック（興味付け）と共感を誘う内容。\n2. 2〜3投稿目で具体的な解決策（リサーチ結果）を提示。\n3. 最後の投稿で自然にアフィリエイトリンクへの誘導（CTA）を行う。\n4. 各投稿は140字以内に収めること。\n\n【テーマ】${keyword}\n【リサーチ結果】\n${research}${contextPrompt}`;
+    } else if (category === "note_free") {
+        finalPrompt = `以下のリサーチ結果を元に、noteの「無料記事」を作成してください。読者の深い共感を呼び、あなた自身のファン（フォロワー）になってもらうことを目的とします。ノウハウの導入部分を魅力的に書き、最後に「続きは有料記事で」または「フォローをお願いします」という自然な誘導を入れてください。\n\n【テーマ】${keyword}\n【リサーチ結果】\n${research}\n\n【文字数目安】約${charLimit}文字${contextPrompt}`;
+    } else if (category === "note_paid") {
+        finalPrompt = `以下のリサーチ結果を元に、noteの「有料記事」として販売する価値のある、非常に具体的で体系的なノウハウ記事を作成してください。抽象的な話は避け、読者がすぐに実践できるステップバイステップの手順や、マネタイズに直結する情報を惜しみなく書いてください。\n\n【テーマ】${keyword}\n【リサーチ結果】\n${research}\n\n【文字数目安】約${charLimit}文字${contextPrompt}`;
+    }
+
+    let article = await fetchAI(finalPrompt);
     outputs[2].value = article;
     nodes[2].style.boxShadow = "0 0 20px var(--success)";
     copyBtn.style.display = "block";
