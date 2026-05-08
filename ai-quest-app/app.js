@@ -1121,6 +1121,20 @@ function setupEventListeners() {
     .getElementById("btn-signup")
     .addEventListener("click", () => handleAuth("signup"));
 
+  const btnUpgradePro = document.getElementById("btn-upgrade-pro");
+  if (btnUpgradePro) {
+    btnUpgradePro.addEventListener("click", async () => {
+      // NOTE: Replace 'https://buy.stripe.com/test_XXXXXXXX' with the actual Stripe payment link.
+      // We use the authenticated user ID from Supabase session.
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session && session.user && session.user.id) {
+        window.open("https://buy.stripe.com/test_placeholder?client_reference_id=" + session.user.id, "_blank");
+      } else {
+        showAlert("エラー", "ログインが必要です。");
+      }
+    });
+  }
+
   document.getElementById("btn-logout").addEventListener("click", async () => {
     await supabaseClient.auth.signOut();
   });

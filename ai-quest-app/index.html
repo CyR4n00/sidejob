@@ -148,6 +148,11 @@
             ><i class="fa-solid fa-chart-line"></i>
             <span>成果報告ギルド</span></a
           >
+          <a href="#" class="nav-item" data-target="community-ranking"
+            ><i class="fa-solid fa-ranking-star text-accent"></i>
+            <span class="text-glow text-accent">ランキング & 共有</span>
+            <span class="badge" style="background: var(--accent); color: #000;">PRO</span></a
+          >
           <a href="#" class="nav-item" data-target="gacha-shop"
             ><i class="fa-solid fa-gift"></i> <span>スキルショップ</span></a
           >
@@ -397,6 +402,101 @@
         </section>
 
         <!-- Gacha & Skills Section -->
+        <section id="community-ranking" class="content-section">
+          <div class="glass-panel text-center mb-4">
+            <h2 class="text-accent">
+              <i class="fa-solid fa-ranking-star"></i> コミュニティ・ランキング
+            </h2>
+            <p>
+              他の錬金術師の成果や、共有された強力な「錬成陣」を確認できます。<br>
+              <small class="text-muted">※高度な分析と共有機能はPROプラン（プレミアム）限定です。</small>
+            </p>
+          </div>
+
+          <div style="display: flex; gap: 20px;">
+            <!-- 外部評価（PV・いいね）ランキング -->
+            <div style="flex: 1; min-width: 300px; margin-bottom: 20px;">
+              <div class="glass-panel h-100">
+                <h3 class="mb-3 text-gold"><i class="fa-solid fa-fire"></i> 成果スコア・ランキング（今月）</h3>
+                <p class="text-muted small mb-3">ユーザーの自己申告に基づく、SNSやブログでの影響力ランキングです。今どのジャンルが伸びているか分析できます。</p>
+
+                <div class="ranking-list" style="max-height: 400px; overflow-y: auto;">
+                  <div class="card mb-2 p-2 d-flex flex-row align-items-center" style="background: rgba(255, 215, 0, 0.1); border-left: 4px solid gold;">
+                    <div class="h2 mb-0 me-3 ms-2 text-gold">1</div>
+                    <div style="flex-grow: 1;">
+                      <h4 class="h6 mb-0">賢者アルティメット</h4>
+                      <small class="text-muted">ジャンル: AI活用術</small>
+                    </div>
+                    <div class="text-end">
+                      <div class="fw-bold text-accent">124,500 PV</div>
+                      <small>Score: 9,850</small>
+                    </div>
+                  </div>
+
+                  <div class="card mb-2 p-2 d-flex flex-row align-items-center" style="background: rgba(192, 192, 192, 0.1); border-left: 4px solid silver;">
+                    <div class="h2 mb-0 me-3 ms-2 text-secondary">2</div>
+                    <div style="flex-grow: 1;">
+                      <h4 class="h6 mb-0">魔女見習いリナ</h4>
+                      <small class="text-muted">ジャンル: 美容・コスメ</small>
+                    </div>
+                    <div class="text-end">
+                      <div class="fw-bold text-accent">89,200 PV</div>
+                      <small>Score: 7,200</small>
+                    </div>
+                  </div>
+
+                  <div class="card mb-2 p-2 d-flex flex-row align-items-center" style="background: rgba(205, 127, 50, 0.1); border-left: 4px solid #cd7f32;">
+                    <div class="h2 mb-0 me-3 ms-2" style="color: #cd7f32;">3</div>
+                    <div style="flex-grow: 1;">
+                      <h4 class="h6 mb-0">ブログ錬金術師</h4>
+                      <small class="text-muted">ジャンル: 副業・投資</small>
+                    </div>
+                    <div class="text-end">
+                      <div class="fw-bold text-accent">54,100 PV</div>
+                      <small>Score: 5,400</small>
+                    </div>
+                  </div>
+                </div>
+                <button class="btn btn-primary full-width mt-3" disabled><i class="fa-solid fa-lock"></i> PRO機能: 詳細な分析を見る</button>
+              </div>
+            </div>
+
+            <!-- 内部評価（錬成陣共有）ランキング -->
+            <div style="flex: 1; min-width: 300px; margin-bottom: 20px;">
+              <div class="glass-panel h-100">
+                <h3 class="mb-3 text-primary"><i class="fa-solid fa-share-nodes"></i> 人気の錬成陣（プロンプト）</h3>
+                <p class="text-muted small mb-3">コミュニティ内で高く評価された「自動生成フロー」です。自身のマクロに取り込むことができます。</p>
+
+                <div class="ranking-list" style="max-height: 400px; overflow-y: auto;">
+                  <div class="card mb-3">
+                    <div class="card-body p-3">
+                      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                        <h5 class="card-title mb-0">SEO特化・長文記事生成陣</h5>
+                        <span class="badge bg-primary"><i class="fa-solid fa-thumbs-up"></i> 342</span>
+                      </div>
+                      <p class="card-text small text-muted mb-2">競合分析から見出し構成、本文執筆までを一気貫通で行うノード構成です。</p>
+                      <button class="btn btn-sm btn-outline-primary" disabled><i class="fa-solid fa-download"></i> マクロにインポート (PRO)</button>
+                    </div>
+                  </div>
+
+                  <div class="card mb-3">
+                    <div class="card-body p-3">
+                      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                        <h5 class="card-title mb-0">SNSバズ狙い・感情煽り陣</h5>
+                        <span class="badge bg-primary"><i class="fa-solid fa-thumbs-up"></i> 215</span>
+                      </div>
+                      <p class="card-text small text-muted mb-2">X(旧Twitter)のツリー投稿用に、結論→共感→解決策の順で出力します。</p>
+                      <button class="btn btn-sm btn-outline-primary" disabled><i class="fa-solid fa-download"></i> マクロにインポート (PRO)</button>
+                    </div>
+                  </div>
+                </div>
+
+                <button class="btn btn-accent full-width mt-3" disabled><i class="fa-solid fa-upload"></i> PRO機能: 自分の錬成陣を公開する</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section id="gacha-shop" class="content-section">
           <header class="section-header">
             <h1>スキルガチャ</h1>
@@ -755,6 +855,25 @@
         <section id="settings" class="content-section">
           <header class="section-header">
             <h1 class="text-gold">
+              <i class="fa-solid fa-crown"></i> プレミアムプラン (PRO)
+            </h1>
+          </header>
+          <div class="quest-card witch-paper mb-4" style="border-image: linear-gradient(45deg, #FFD700, #FFA500) 1; box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);">
+            <div style="display: flex; align-items: center; gap: 20px;">
+              <div style="flex: 2;">
+                <p>現在のご利用プラン: <strong id="current-plan-status" class="text-gold" style="font-size: 1.2em;">無料見習いプラン</strong></p>
+                <p class="small text-muted mt-2">PROプランにアップグレードすると、コミュニティランキングの詳細分析、高度な錬成陣のインポート/公開、おすすめ記事の自動案出し機能が解放されます。</p>
+              </div>
+              <div style="flex: 1; text-align: right;">
+                <button id="btn-upgrade-pro" class="btn" style="background: linear-gradient(45deg, #FFD700, #FFA500); color: #000; font-weight: bold; border: none; padding: 15px 20px; font-size: 1.1em;">
+                  <i class="fa-solid fa-arrow-up-right-dots"></i> PROにアップグレード (¥1,980/月)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <header class="section-header mt-5">
+            <h1 class="text-gold">
               <i class="fa-solid fa-gear"></i> 歯車の設定
             </h1>
           </header>
@@ -805,6 +924,10 @@
         </section>
       </main>
     </div>
+    <footer class="text-center mt-4 mb-2" style="font-size: 0.8em; color: var(--text-color); opacity: 0.7;">
+      <a href="terms.html" class="text-muted text-decoration-none me-3">利用規約</a>
+      <a href="privacy.html" class="text-muted text-decoration-none">プライバシーポリシー</a>
+    </footer>
 
     <!-- Error/Alert Modal (Reused for general alerts if needed) -->
     <div id="alert-modal" class="modal">
