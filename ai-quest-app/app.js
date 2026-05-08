@@ -19,6 +19,10 @@ const DEFAULT_STATE = {
   exp: 0,
   stamina: 3,
   medals: 0, // ガチャ用メダル
+  dailyQuestClaimed: false,
+  personalData: "", // 保存されたトーン＆マナーデータ
+  dailyActionCompleted: false,
+  lastLoginDate: "",
   inventory: {
     skill_picture: 0, // 絵師の魔道書
     skill_agitation: 0, // 煽りの書
@@ -208,6 +212,15 @@ async function loadState() {
   // 1. Load cloud game state
   userState = await CloudDB.getUser();
 
+  // 1.5 Update PRO status from auth session metadata
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+  if (sessionData && sessionData.session && sessionData.session.user) {
+    const user = sessionData.session.user;
+    // Check app_metadata (secure) or user_metadata for the is_pro flag
+    const isPro = user.app_metadata?.is_pro || user.user_metadata?.is_pro || false;
+    userState.is_pro = isPro;
+  }
+
   // 2. Load local secure settings
   const savedSettings = localStorage.getItem("aiQuestLocalSettings");
   if (savedSettings) {
@@ -220,6 +233,7 @@ async function loadState() {
     userState.stamina = 3;
     userState.lastQuestDate = today;
     userState.dailyQuestClaimed = false; // Reset daily quest reward
+    userState.dailyActionCompleted = false; // Reset daily action flag
     await saveState(); // This syncs back to cloud
   }
 }
@@ -278,6 +292,41 @@ function updateUI() {
   }
   document.getElementById("user-title").textContent = currentTitle;
 
+  const pastDataEl = document.getElementById("macro-past-data");
+  // Only set this once on load to prevent overwriting user's intentional clear
+  if (pastDataEl && userState.personalData && pastDataEl.dataset.loaded !== "true") {
+    pastDataEl.value = userState.personalData;
+    pastDataEl.dataset.loaded = "true";
+  }
+
+  // Update PRO UI
+  const planStatusEl = document.getElementById("current-plan-status");
+  const upgradeBtn = document.getElementById("btn-upgrade-pro");
+
+  // Unlock Community Features for PRO users
+  const communityButtons = document.querySelectorAll("#community-ranking .btn");
+  communityButtons.forEach(btn => {
+    if (userState.is_pro) {
+      btn.disabled = false;
+      btn.innerHTML = btn.innerHTML.replace(" (PRO)", "").replace("PRO機能: ", "");
+    }
+  });
+  if (planStatusEl) {
+    if (userState.is_pro) {
+      planStatusEl.textContent = "PROプラン (プレミアム)";
+      planStatusEl.className = "text-gold";
+      if (upgradeBtn) {
+        upgradeBtn.innerHTML = '<i class="fa-solid fa-check"></i> PRO契約中';
+        upgradeBtn.disabled = true;
+        upgradeBtn.style.background = "#333";
+        upgradeBtn.style.color = "#888";
+      }
+    } else {
+      planStatusEl.textContent = "無料見習いプラン";
+      planStatusEl.className = "text-white";
+    }
+  }
+
   // History Count
   const historyCountEl = document.getElementById("history-count");
   if (historyCountEl) {
@@ -295,10 +344,14 @@ function updateUI() {
       claimBtn.innerHTML = '<i class="fa-solid fa-check"></i> 報酬獲得済み';
       claimBtn.classList.add("btn-secondary");
       claimBtn.classList.remove("btn-success");
+    } else if (!userState.dailyActionCompleted) {
+      claimBtn.disabled = true;
+      claimBtn.innerHTML = '<i class="fa-solid fa-lock"></i> 記事を生成して解放';
+      claimBtn.classList.add("btn-secondary");
+      claimBtn.classList.remove("btn-success");
     } else {
       claimBtn.disabled = false;
-      claimBtn.innerHTML =
-        '<i class="fa-solid fa-gift"></i> クエスト完了報酬 (5メダル) を受け取る';
+      claimBtn.innerHTML = '<i class="fa-solid fa-gift"></i> クエスト完了報酬 (5メダル) を受け取る';
       claimBtn.classList.add("btn-success");
       claimBtn.classList.remove("btn-secondary");
     }
@@ -580,6 +633,14 @@ async function generateContent() {
     }
 
     resultBox.value = generatedText;
+    document.getElementById("btn-copy").style.display = "block";
+
+    // Mark action completed for daily quest
+    if (!userState.dailyActionCompleted) {
+       userState.dailyActionCompleted = true;
+       await saveState();
+       updateUI();
+    }
   } catch (error) {
     resultBox.value = `エラーが発生しました:\n${error.message}`;
     // Refund stamina on error
@@ -807,6 +868,17 @@ async function runAutoMacro() {
   const category = document.getElementById("macro-category").value;
   const charLimit = document.getElementById("macro-char-limit").value || "指定なし";
   const pastData = document.getElementById("macro-past-data").value || "";
+
+  // PRO Feature Lock
+  if ((category.startsWith("X_affiliate") || category.startsWith("note_")) && !userState.is_pro) {
+    showAlert("PROプラン限定", "X特化およびnote特化の強力なマクロはPROプラン限定です。設定画面からアップグレードしてください。");
+    return;
+  }
+
+  if (pastData !== userState.personalData) {
+    userState.personalData = pastData;
+    // We don't await saveState here to not block UI, it will be saved shortly anyway when stamina decreases
+  }
   const btn = document.getElementById("btn-start-macro");
   const nodes = [
     document.getElementById("node-1"),
@@ -825,6 +897,8 @@ async function runAutoMacro() {
     n.style.opacity = "0.5";
     n.style.boxShadow = "none";
   });
+  if(document.getElementById("node-2-edit")) document.getElementById("node-2-edit").style.display = "none";
+  if(document.getElementById("btn-resume-macro")) document.getElementById("btn-resume-macro").style.display = "none";
   outputs.forEach((o) => {
     o.style.display = "none";
     o.innerHTML = "";
@@ -894,9 +968,15 @@ async function runAutoMacro() {
         keywordPrompt = `「note」で読まれやすい、自身の深い体験談や体系的なノウハウに基づく「記事の切り口」を1つ提案してください。理由不要、切り口のみ。`;
     }
 
-    let keyword = await fetchAI(keywordPrompt);
-    keyword = keyword.trim();
-    outputs[0].innerHTML = `<span class="text-gold font-bold">抽出キーワード:</span> ${keyword}`;
+    let keyword = document.getElementById("macro-manual-keyword") ? document.getElementById("macro-manual-keyword").value.trim() : "";
+    if (keyword) {
+      outputs[0].innerHTML = `<span class="text-gold font-bold">手動設定キーワード:</span> ${keyword}`;
+      // AI fetching is skipped if manually provided, saving time and tokens
+    } else {
+      keyword = await fetchAI(keywordPrompt);
+      keyword = keyword.trim();
+      outputs[0].innerHTML = `<span class="text-gold font-bold">抽出キーワード:</span> ${keyword}`;
+    }
     nodes[0].style.boxShadow = "none";
 
     // --- NODE 2: Research ---
@@ -910,6 +990,31 @@ async function runAutoMacro() {
     );
     outputs[1].innerHTML = `<span class="text-gold font-bold">リサーチ完了:</span><br>${research.replace(/\n/g, "<br>")}`;
     nodes[1].style.boxShadow = "none";
+
+    const isStepMode = document.getElementById("macro-step-mode")?.checked;
+
+    if (isStepMode) {
+      btn.innerHTML = '<i class="fa-solid fa-pause"></i> リサーチ完了（一時停止中）';
+      outputs[1].style.display = "none";
+
+      const editArea = document.getElementById("node-2-edit");
+      const resumeBtn = document.getElementById("btn-resume-macro");
+      editArea.style.display = "block";
+      editArea.value = research;
+      resumeBtn.style.display = "inline-block";
+
+      await new Promise((resolve) => {
+        resumeBtn.onclick = () => {
+          research = editArea.value; // Get manually edited research
+          editArea.style.display = "none";
+          resumeBtn.style.display = "none";
+          outputs[1].style.display = "block";
+          outputs[1].innerHTML = `<span class="text-gold font-bold">リサーチ完了(編集済):</span><br>${research.replace(/\n/g, "<br>")}`;
+          btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 錬成陣 稼働中...';
+          resolve();
+        };
+      });
+    }
 
     // --- NODE 3: Generation ---
     nodes[2].style.opacity = "1";
@@ -931,6 +1036,13 @@ async function runAutoMacro() {
     outputs[2].value = article;
     nodes[2].style.boxShadow = "0 0 20px var(--success)";
     copyBtn.style.display = "block";
+
+    // Mark action completed for daily quest
+    if (!userState.dailyActionCompleted) {
+       userState.dailyActionCompleted = true;
+       await saveState();
+       updateUI();
+    }
   } catch (error) {
     console.error(error);
     showAlert("マクロ実行エラー", "自動錬成中にエラーが発生しました。");
@@ -1163,6 +1275,10 @@ function setupEventListeners() {
   const claimBtn = document.getElementById("btn-claim-daily");
   if (claimBtn) {
     claimBtn.addEventListener("click", async () => {
+      if (!userState.dailyActionCompleted) {
+        alert("本日の記事生成クエストがまだ完了していません！");
+        return;
+      }
       if (!userState.dailyQuestClaimed) {
         userState.medals += 5;
         userState.dailyQuestClaimed = true;

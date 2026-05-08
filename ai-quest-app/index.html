@@ -57,7 +57,7 @@
             class="fa-solid fa-compact-disc fa-spin text-accent"
             style="font-size: 4rem; margin-bottom: 1rem"
           ></i>
-          <h3 class="text-gold text-glow">魂の契約を確認中...</h3>
+          <h3 class="text-gold text-glow">ログイン状態を確認中...</h3>
         </div>
 
         <!-- Login Form -->
@@ -72,7 +72,7 @@
           </div>
 
           <div class="form-group">
-            <label>魂の署名 (メールアドレス)</label>
+            <label>メールアドレス</label>
             <input
               type="text"
               id="auth-email"
@@ -80,7 +80,7 @@
             />
           </div>
           <div class="form-group">
-            <label>真言 (パスワード)</label>
+            <label>パスワード</label>
             <input type="password" id="auth-password" placeholder="6文字以上" />
           </div>
 
@@ -91,7 +91,7 @@
           ></div>
 
           <button class="btn btn-primary full-width mb-3" id="btn-login">
-            <i class="fa-solid fa-key"></i> 扉を開く (ログイン)
+            <i class="fa-solid fa-key"></i> ログイン
           </button>
           <button class="btn btn-secondary full-width" id="btn-signup">
             <i class="fa-solid fa-pen-nib"></i> 契約を結ぶ (新規登録)
@@ -750,8 +750,10 @@
               <select id="macro-category">
                 <optgroup label="X (旧Twitter) アフィリエイト陣">
                   <option value="X_affiliate_finance">【X特化】金融・副業 (ツリー形式)</option>
-                  <option value="X_affiliate_gadget">【X特化】ガジェット (ツリー形式)</option>
-                  <option value="X_affiliate_beauty">【X特化】美容・恋愛 (ツリー形式)</option>
+                  <option value="X_affiliate_gadget">【X特化】ガジェット・PC関連 (ツリー形式)</option>
+                  <option value="X_affiliate_beauty">【X特化】美容・健康・ダイエット (ツリー形式)</option>
+                  <option value="X_affiliate_career">【X特化】キャリア・転職 (ツリー形式)</option>
+                  <option value="X_affiliate_romance">【X特化】アダルト・恋愛・マッチング (ツリー形式)</option>
                 </optgroup>
                 <optgroup label="note 記事生成陣">
                   <option value="note_free">【note】無料記事（共感・ノウハウ・信頼構築）</option>
@@ -760,14 +762,30 @@
                 <optgroup label="従来ブログ・SEO">
                   <option value="金融・投資">金融・投資</option>
                   <option value="ガジェット・PC">ガジェット・PC関連</option>
+                  <option value="美容・健康">美容・健康・ダイエット</option>
+                  <option value="キャリア・転職">キャリア・転職・副業</option>
+                  <option value="アダルト・恋愛">アダルト・恋愛・マッチング</option>
                 </optgroup>
               </select>
+            </div>
+
+            <div class="form-group mt-3">
+              <label><i class="fa-solid fa-keyboard text-accent"></i> 手動キーワード (任意)</label>
+              <input type="text" id="macro-manual-keyword" placeholder="空欄の場合、AIがトレンドを自動で抽出します" />
             </div>
 
             <div class="form-group mt-3">
               <label><i class="fa-solid fa-text-width text-primary"></i> 目安文字数制限</label>
               <input type="number" id="macro-char-limit" placeholder="例: Xは140, noteは2000" value="1000" />
               <small class="text-muted">※生成AIの性質上、厳密な文字数にはならない場合があります。</small>
+            </div>
+
+
+            <div class="form-group mt-3">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="macro-step-mode">
+                <label class="form-check-label" for="macro-step-mode"><i class="fa-solid fa-pause text-accent"></i> ステップ実行（リサーチ後に一時停止して編集する）</label>
+              </div>
             </div>
 
             <div class="form-group mt-3">
@@ -798,6 +816,9 @@
                 指定カテゴリから「今バズりやすい」ニッチなキーワードをAIが考案します。
               </p>
               <div class="node-output text-small" style="display: none"></div>
+              <!-- Added text area for manual editing of research -->
+              <textarea id="node-2-edit" class="mt-2" style="display: none; height: 100px;" placeholder="AIのリサーチ結果を編集できます"></textarea>
+              <button id="btn-resume-macro" class="btn btn-success btn-sm mt-2" style="display: none;">次へ進む（記事執筆） <i class="fa-solid fa-arrow-right"></i></button>
             </div>
 
             <!-- Arrow 1 -->
@@ -896,7 +917,7 @@
           </header>
           <div class="quest-card witch-paper mb-4">
             <h3 class="text-primary">
-              <i class="fa-solid fa-user"></i> 魂のアカウント
+              <i class="fa-solid fa-user"></i> アカウント情報
             </h3>
             <p class="text-small text-muted">
               現在ログイン中のアカウント情報です。データはクラウドに保存されています。
