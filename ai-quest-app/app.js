@@ -1088,11 +1088,23 @@ function setupEventListeners() {
           ) {
             throw new Error("このメールアドレスは既に登録されています。");
           }
+          if (!res.data.session) {
+            throw new Error(
+              "メールアドレスの確認が必要です。送信された確認メールのリンクをクリックしてください。"
+            );
+          }
           await handleLoginSuccess(res.data.user);
         }
       }
 
-      if (error) throw error;
+      if (error) {
+        if (error.message === "Email not confirmed") {
+          throw new Error("メールアドレスが確認されていません。受信トレイの確認メールのリンクをクリックして認証を完了してください。");
+        } else if (error.message === "Invalid login credentials") {
+          throw new Error("メールアドレスまたはパスワードが間違っています。");
+        }
+        throw error;
+      }
     } catch (err) {
       authError.textContent = err.message || "エラーが発生しました。";
       authError.style.display = "block";
