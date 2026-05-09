@@ -17,7 +17,7 @@ let currentUser = null;
 const DEFAULT_STATE = {
   level: 1,
   exp: 0,
-  stamina: 3,
+  stamina: 20,
   medals: 0, // ガチャ用メダル
   dailyQuestClaimed: false,
   personalData: "", // 保存されたトーン＆マナーデータ
@@ -32,6 +32,7 @@ const DEFAULT_STATE = {
   },
   questHistory: [], // 勝ちパターン分析用ログ
   subscriptionTier: "free", // 'free' or 'vip'
+  userRole: "general", // 'general', 'poikatsu', 'affiliate', 'sns_influencer'
   completedQuests: 0,
   lastQuestDate: null,
   dailyQuestClaimed: false,
@@ -106,18 +107,12 @@ const CloudDB = {
   },
 };
 
-const EXP_TABLE = {
-  1: 100,
-  2: 250,
-  3: 500,
-  4: 1000,
-  5: 2000,
-  6: 4000,
-  7: 8000,
-  8: 15000,
-  9: 30000,
-  10: 999999, // Max level for MVP
-};
+// Flat experience curve: every level requires 500 EXP, max level 999
+const MAX_LEVEL = 999;
+const EXP_PER_LEVEL = 500;
+function getNextExp(level) {
+  return level >= MAX_LEVEL ? "MAX" : level * 500;
+}
 
 const TITLES = {
   1: "見習い錬金術師",
@@ -127,28 +122,32 @@ const TITLES = {
   10: "コンテンツ王",
 };
 
-const DAILY_QUESTS = [
-  {
-    title: "トレンドレビュー",
-    desc: "今話題になっているガジェットやサービスについて、メリット・デメリットをまとめた記事を書こう。",
-    keywordHint: "最新の〇〇",
-  },
-  {
-    title: "お悩み解決",
-    desc: "特定のターゲット（例：副業初心者）が抱える悩みを解決するノウハウをX(Twitter)でシェアしよう。",
-    keywordHint: "〇〇の始め方",
-  },
-  {
-    title: "比較検証",
-    desc: "2つの似たような商品・サービスを比較し、どちらがどんな人に向いているか解説しよう。",
-    keywordHint: "A vs B 徹底比較",
-  },
-  {
-    title: "ツール紹介",
-    desc: "あなたが最近使って便利だったツール（AIツールなど）の紹介記事を作成しよう。",
-    keywordHint: "おすすめツール",
-  },
-];
+const DAILY_QUESTS_BY_ROLE = {
+  general: [
+    { title: "トレンドレビュー", desc: "今話題のテーマについて、メリット・デメリットをまとめよう。", keywordHint: "最新の〇〇" },
+    { title: "お悩み解決", desc: "特定のターゲットが抱える悩みを解決するノウハウをシェアしよう。", keywordHint: "〇〇の始め方" },
+    { title: "比較コンテンツ", desc: "2つのモノを比較し、どちらがおすすめかを結論づけよう。", keywordHint: "AとBの比較" },
+    { title: "実績公開", desc: "あなたの実績や失敗談を赤裸々に語り、共感を呼ぼう。", keywordHint: "私の失敗談" }
+  ],
+  poikatsu: [
+    { title: "お得案件の紹介", desc: "今月一番おすすめのポイントサイト案件やキャンペーンを紹介しよう。", keywordHint: "〇〇キャンペーン" },
+    { title: "クレカ作成のコツ", desc: "新しくクレジットカードを作る際の注意点や、お得なルートを解説しよう。", keywordHint: "〇〇カードのメリット" },
+    { title: "ポイ活ルーティン", desc: "あなたが毎日やっているスキマ時間のポイ活ルーティンを公開しよう。", keywordHint: "私のポイ活ルーティン" },
+    { title: "比較：ポイント交換", desc: "貯まったポイントの最もお得な交換先（マイルや他社ポイント）を比較しよう。", keywordHint: "ポイント交換ルート" }
+  ],
+  affiliate: [
+    { title: "商品レビュー", desc: "実際に使ってみて良かったASP案件の商品を、画像付きで詳しくレビューしよう。", keywordHint: "〇〇 レビュー" },
+    { title: "ランキング記事", desc: "特定のジャンル（例：格安SIM、サーバー）の「おすすめランキングTOP3」を書こう。", keywordHint: "〇〇 おすすめ ランキング" },
+    { title: "商標キーワード攻略", desc: "特定の商品名＋「口コミ」や「評判」のキーワードで記事を構成しよう。", keywordHint: "〇〇 口コミ" },
+    { title: "セール訴求", desc: "Amazonや楽天のセールに合わせて、お得に買えるおすすめ商品をリストアップしよう。", keywordHint: "〇〇セール おすすめ" }
+  ],
+  sns_influencer: [
+    { title: "共感ポスト", desc: "ターゲット層が「あるある！」と共感するような日常の気づきをXでポストしよう。", keywordHint: "〇〇あるある" },
+    { title: "図解・まとめ", desc: "複雑な情報やノウハウを、3つのポイントに絞って分かりやすくまとめよう。", keywordHint: "〇〇の3つのコツ" },
+    { title: "煽り・フック", desc: "「まだ〇〇やってるの？」など、強い言葉で注意を引きつける投稿を作ろう。", keywordHint: "〇〇の罠" },
+    { title: "ストーリーテリング", desc: "あなたが今の状態になるまでの「どん底からの這い上がりストーリー」を語ろう。", keywordHint: "過去の私" }
+  ]
+};
 
 // --- Initialization ---
 document.addEventListener("DOMContentLoaded", async () => {
@@ -230,7 +229,7 @@ async function loadState() {
   // Check daily reset (stamina and quest)
   const today = new Date().toDateString();
   if (userState.lastQuestDate !== today) {
-    userState.stamina = 3;
+    userState.stamina = 20;
     userState.lastQuestDate = today;
     userState.dailyQuestClaimed = false; // Reset daily quest reward
     userState.dailyActionCompleted = false; // Reset daily action flag
@@ -250,9 +249,27 @@ function updateUI() {
   // Stats
   document.getElementById("user-level").textContent = userState.level;
   document.getElementById("current-exp").textContent = userState.exp;
-  const nextExp = EXP_TABLE[userState.level] || "MAX";
+  const nextExp = getNextExp(userState.level);
   document.getElementById("next-level-exp").textContent = nextExp;
-  document.getElementById("stamina-count").textContent = userState.stamina;
+
+  const staminaContainer = document.getElementById("stamina-container");
+  const watchAdBtn = document.getElementById("btn-watch-ad");
+
+  if (userState.is_pro) {
+    if(staminaContainer) staminaContainer.innerHTML = `<i class="fa-solid fa-bolt text-gold"></i> スタミナ: <span id="stamina-count" class="font-bold">∞ (無制限)</span>`;
+    if (watchAdBtn) watchAdBtn.style.display = "none";
+  } else {
+    if(staminaContainer) staminaContainer.innerHTML = `<i class="fa-solid fa-bolt text-gold"></i> スタミナ: <span id="stamina-count" class="font-bold">${userState.stamina}</span>/20`;
+
+    if (watchAdBtn) {
+      if (userState.stamina < 5) {
+        watchAdBtn.style.display = "inline-block";
+      } else {
+        watchAdBtn.style.display = "none";
+      }
+    }
+  }
+
   document.getElementById("medal-count").textContent = userState.medals;
   document.getElementById("gacha-medal-count").textContent = userState.medals;
 
@@ -286,9 +303,10 @@ function updateUI() {
   }
 
   // Title
-  let currentTitle = TITLES[1];
-  for (let lvl in TITLES) {
-    if (userState.level >= parseInt(lvl)) currentTitle = TITLES[lvl];
+  let currentTitle = "見習い錬金術師";
+  const levels = Object.keys(TITLES).map(Number).sort((a,b) => a-b);
+  for (let lvl of levels) {
+    if (userState.level >= lvl) currentTitle = TITLES[lvl];
   }
   document.getElementById("user-title").textContent = currentTitle;
 
@@ -359,9 +377,12 @@ function updateUI() {
 
   // Progress bar
   if (nextExp !== "MAX") {
-    const prevExp = userState.level === 1 ? 0 : EXP_TABLE[userState.level - 1];
-    const levelExpRange = nextExp - prevExp;
-    const currentLevelExp = userState.exp - prevExp;
+    // Flat EXP: total exp needed for current level is (level - 1) * 500
+    // total exp needed for next level is level * 500
+    const prevLevelThreshold = (userState.level - 1) * 500;
+    const nextLevelThreshold = userState.level * 500;
+    const levelExpRange = nextLevelThreshold - prevLevelThreshold;
+    const currentLevelExp = userState.exp - prevLevelThreshold;
     const percent = Math.min(
       100,
       Math.max(0, (currentLevelExp / levelExpRange) * 100),
@@ -372,6 +393,9 @@ function updateUI() {
   }
 
   // Settings logic (Local secure storage)
+  if (document.getElementById("user-role-select")) {
+    document.getElementById("user-role-select").value = userState.userRole || "general";
+  }
   document.getElementById("ai-provider").value =
     localSettings.aiProvider || "openai";
   if (localSettings.apiKey) {
@@ -473,11 +497,14 @@ function setupDailyQuest() {
       24,
   );
 
-  const mainQuestIndex = dayOfYear % DAILY_QUESTS.length;
-  const subQuestIndex = (dayOfYear + 2) % DAILY_QUESTS.length; // Different quest
+  const role = userState.userRole || 'general';
+  const questsForRole = DAILY_QUESTS_BY_ROLE[role] || DAILY_QUESTS_BY_ROLE['general'];
 
-  const mainQuest = DAILY_QUESTS[mainQuestIndex];
-  const subQuest = DAILY_QUESTS[subQuestIndex];
+  const mainQuestIndex = dayOfYear % questsForRole.length;
+  const subQuestIndex = (dayOfYear + 2) % questsForRole.length; // Different quest
+
+  const mainQuest = questsForRole[mainQuestIndex];
+  const subQuest = questsForRole[subQuestIndex];
 
   // Main Quest UI
   document.getElementById("daily-quest-title").textContent = mainQuest.title;
@@ -505,9 +532,9 @@ function setupDailyQuest() {
 
 // --- AI Generation (OpenAI Mock/Integration) ---
 async function generateContent() {
-  if (userState.stamina <= 0) {
+  if (!userState.is_pro && userState.stamina <= 0) {
     alert(
-      "スタミナが足りません！明日回復するのを待つか、プレミアム機能をご検討ください。",
+      "スタミナが足りません！明日回復するのを待つか、PROプランへのアップグレードをご検討ください。",
     );
     return;
   }
@@ -644,7 +671,9 @@ async function generateContent() {
   } catch (error) {
     resultBox.value = `エラーが発生しました:\n${error.message}`;
     // Refund stamina on error
-    userState.stamina += 1;
+    if (!userState.is_pro) {
+      userState.stamina += 1;
+    }
     saveState();
     updateUI();
   } finally {
@@ -856,8 +885,8 @@ ${historyText}
 
 // --- Auto Macro (Node Automation) ---
 async function runAutoMacro() {
-  if (userState.stamina < 2) {
-    showAlert("スタミナ不足", "自動錬成陣の起動にはスタミナが2必要です。");
+  if (!userState.is_pro && userState.stamina < 2) {
+    showAlert("スタミナ不足", "自動錬成陣の起動にはスタミナが2必要です。PROプランなら無制限に使用できます。");
     return;
   }
   if (!localSettings.apiKey || localSettings.apiKey === "********") {
@@ -906,7 +935,9 @@ async function runAutoMacro() {
   });
   copyBtn.style.display = "none";
 
-  userState.stamina -= 2;
+  if (!userState.is_pro) {
+    userState.stamina -= 2;
+  }
   await saveState();
   updateUI();
 
@@ -1046,7 +1077,7 @@ async function runAutoMacro() {
   } catch (error) {
     console.error(error);
     showAlert("マクロ実行エラー", "自動錬成中にエラーが発生しました。");
-    userState.stamina += 2; // Refund
+    if (!userState.is_pro) userState.stamina += 2; // Refund
     await saveState();
     updateUI();
   } finally {
@@ -1098,8 +1129,8 @@ async function submitReport() {
   let levelUpMsg = "";
   let levelUpMedals = 0;
   while (
-    EXP_TABLE[userState.level] &&
-    userState.exp >= EXP_TABLE[userState.level]
+    userState.level < 999 &&
+    userState.exp >= (userState.level * 500)
   ) {
     userState.level++;
     levelUpMedals += 50;
@@ -1128,6 +1159,67 @@ async function submitReport() {
 
 // --- Event Listeners Setup ---
 function setupEventListeners() {
+  const btnSaveRole = document.getElementById("btn-save-role");
+  if (btnSaveRole) {
+    btnSaveRole.addEventListener("click", async () => {
+      const role = document.getElementById("user-role-select").value;
+      userState.userRole = role;
+      await saveState();
+      setupDailyQuest();
+      updateUI();
+
+      const roleMsg = document.getElementById("role-message");
+      if (roleMsg) {
+        roleMsg.textContent = "属性を保存し、クエストを更新しました！";
+        roleMsg.style.display = "block";
+        setTimeout(() => { roleMsg.style.display = "none"; }, 3000);
+      }
+    });
+  }
+
+  const watchAdBtn = document.getElementById("btn-watch-ad");
+  if (watchAdBtn) {
+    watchAdBtn.addEventListener("click", () => {
+      const adModal = document.getElementById("ad-modal");
+      const adTimerEl = document.getElementById("ad-timer");
+      const closeBtn = document.getElementById("btn-close-ad");
+
+      if (!adModal) return;
+
+      adModal.style.display = "flex";
+      closeBtn.disabled = true;
+      closeBtn.innerText = "待機中...";
+      closeBtn.classList.remove("btn-success");
+      closeBtn.classList.add("btn-secondary");
+
+      let timeLeft = 5;
+      adTimerEl.innerText = timeLeft;
+
+      const adInterval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft > 0) {
+          adTimerEl.innerText = timeLeft;
+        } else {
+          clearInterval(adInterval);
+          adTimerEl.innerText = "完了";
+          closeBtn.disabled = false;
+          closeBtn.innerText = "スタミナを回復して閉じる";
+          closeBtn.classList.remove("btn-secondary");
+          closeBtn.classList.add("btn-success");
+
+          closeBtn.replaceWith(closeBtn.cloneNode(true));
+
+          document.getElementById("btn-close-ad").addEventListener("click", async () => {
+            userState.stamina = Math.min(20, userState.stamina + 5);
+            await saveState();
+            updateUI();
+            adModal.style.display = "none";
+          });
+        }
+      }, 1000);
+    });
+  }
+
   document
     .getElementById("btn-generate")
     .addEventListener("click", generateContent);
@@ -1257,11 +1349,16 @@ function setupEventListeners() {
   const btnUpgradePro = document.getElementById("btn-upgrade-pro");
   if (btnUpgradePro) {
     btnUpgradePro.addEventListener("click", async () => {
-      // NOTE: Replace 'https://buy.stripe.com/test_XXXXXXXX' with the actual Stripe payment link.
-      // We use the authenticated user ID from Supabase session.
+      const stripeUrl = "https://buy.stripe.com/test_placeholder"; // ←ここに実際のStripeのリンクを入れます
+
+      if (stripeUrl.includes("test_placeholder")) {
+        showAlert("準備中", "決済リンクが未設定です。管理者は app.js の stripeUrl を実際のものに書き換えてください。");
+        return;
+      }
+
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session && session.user && session.user.id) {
-        window.open("https://buy.stripe.com/test_placeholder?client_reference_id=" + session.user.id, "_blank");
+        window.open(stripeUrl + "?client_reference_id=" + session.user.id, "_blank");
       } else {
         showAlert("エラー", "ログインが必要です。");
       }

@@ -499,3 +499,22 @@ input:focus, select:focus, textarea:focus {
     align-items: center;
     gap: 0.5rem;
 }
+/* Fix Magic Eye Readability */
+#result-analysis, #result-target, #result-quest {
+  color: #ffffff !important;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+  font-weight: bold;
+  font-size: 1.05em;
+  line-height: 1.8;
+  background: rgba(0, 0, 0, 0.85) !important;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
+  box-shadow: inset 0 0 10px rgba(138, 43, 226, 0.3);
+}
+#result-analysis strong, #result-analysis b,
+#result-target strong, #result-target b,
+#result-quest strong, #result-quest b {
+  color: #ffd700 !important;
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}

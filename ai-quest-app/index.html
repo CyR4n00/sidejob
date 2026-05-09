@@ -61,6 +61,14 @@
         </div>
 
         <!-- Login Form -->
+        <!-- Service Footer Links for Stripe Review -->
+        <div style="position: absolute; bottom: -40px; width: 100%; text-align: center; font-size: 0.8em;">
+          <a href="terms.html" style="color: var(--text-color); opacity: 0.7; text-decoration: none; margin-right: 10px;">利用規約</a>
+          <a href="privacy.html" style="color: var(--text-color); opacity: 0.7; text-decoration: none; margin-right: 10px;">プライバシーポリシー</a>
+          <a href="tokushoho.html" style="color: var(--text-color); opacity: 0.7; text-decoration: none;">特定商取引法に基づく表記</a>
+        </div>
+
+        <!-- Login Form -->
         <div id="auth-form" style="display: none">
           <div class="text-center mb-4">
             <i
@@ -96,6 +104,12 @@
           <button class="btn btn-secondary full-width" id="btn-signup">
             <i class="fa-solid fa-pen-nib"></i> 契約を結ぶ (新規登録)
           </button>
+
+          <div class="mt-4 p-3 rounded" style="background-color: rgba(255,255,255,0.05); font-size: 0.85em;">
+            <p class="mb-1 text-gold"><i class="fa-solid fa-info-circle"></i> サービス概要</p>
+            <p class="text-muted mb-2">Content Alchemistは、AIを活用してブログ記事やSNSポストをゲーム感覚で自動生成できるクリエイター向けSaaSです。継続的なコンテンツ制作をサポートします。</p>
+            <p class="text-muted mb-0"><strong>PROプラン (月額980円)</strong>: スタミナ無限、高度なAIモデル連携などが利用可能になります。</p>
+          </div>
         </div>
       </div>
     </div>
@@ -125,10 +139,11 @@
             <span id="next-level-exp">100</span>
           </div>
 
-          <div class="stamina-info mt-3">
+          <div class="stamina-info mt-3" id="stamina-container">
             <span><i class="fa-solid fa-bolt"></i> スタミナ:</span>
             <span id="stamina-count">3</span>/3
           </div>
+          <button id="btn-watch-ad" class="btn btn-secondary btn-sm mt-2" style="display: none; width: 100%; font-size: 0.8rem;"><i class="fa-solid fa-tv"></i> 広告を見てスタミナ回復</button>
           <div class="stamina-info mt-2">
             <span class="text-gold"
               ><i class="fa-solid fa-coins"></i> メダル:</span
@@ -912,6 +927,26 @@
 
           <header class="section-header mt-5">
             <h1 class="text-gold">
+              <i class="fa-solid fa-user-tag"></i> クエスト属性設定
+            </h1>
+          </header>
+          <div class="quest-card witch-frame mb-4">
+            <p class="text-muted text-small mb-3">あなたのアクティビティスタイルを設定することで、毎日の「クエスト（お題）」が最適化されます。</p>
+            <div class="form-group">
+              <label>あなたの職業・スタイル</label>
+              <select id="user-role-select" class="form-control" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid var(--accent-color); border-radius: 5px;">
+                <option value="general">一般クリエイター（指定なし）</option>
+                <option value="poikatsu">ポイ活・お得情報発信者</option>
+                <option value="affiliate">アフィリエイター・ブロガー</option>
+                <option value="sns_influencer">SNSインフルエンサー</option>
+              </select>
+            </div>
+            <button class="btn btn-primary mt-2" id="btn-save-role">属性を保存してクエスト更新</button>
+            <div id="role-message" class="mt-2 text-success text-glow" style="display: none"></div>
+          </div>
+
+          <header class="section-header mt-5">
+            <h1 class="text-gold">
               <i class="fa-solid fa-gear"></i> 歯車の設定
             </h1>
           </header>
@@ -964,8 +999,21 @@
     </div>
     <footer class="text-center mt-4 mb-2" style="font-size: 0.8em; color: var(--text-color); opacity: 0.7;">
       <a href="terms.html" class="text-muted text-decoration-none me-3">利用規約</a>
-      <a href="privacy.html" class="text-muted text-decoration-none">プライバシーポリシー</a>
+      <a href="privacy.html" class="text-muted text-decoration-none me-3">プライバシーポリシー</a>
+      <a href="tokushoho.html" class="text-muted text-decoration-none">特定商取引法に基づく表記</a>
     </footer>
+
+    <!-- Ad Viewer Modal (Mock) -->
+    <div id="ad-modal" class="modal">
+      <div class="modal-content text-center" style="max-width: 400px; background-color: var(--bg-panel); border: 1px solid var(--accent-color);">
+        <h3 class="text-gold mb-3"><i class="fa-solid fa-tv"></i> 動画広告を視聴中...</h3>
+        <div id="ad-video-mock" style="width: 100%; height: 200px; background-color: #000; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 20px;">
+          <span id="ad-timer">5</span> 秒後に報酬を獲得できます
+        </div>
+        <p class="text-muted text-small mb-3">※これは将来のアップデートで実際のアドセンス/AdMob広告に置き換わります。</p>
+        <button id="btn-close-ad" class="btn btn-secondary full-width" disabled>待機中...</button>
+      </div>
+    </div>
 
     <!-- Error/Alert Modal (Reused for general alerts if needed) -->
     <div id="alert-modal" class="modal">
