@@ -6,7 +6,8 @@
     --bg-panel: #2b2528;
     --bg-card: #f4ecd8; /* Old parchment paper */
     --text-main: #2a1f22; /* Dark ink */
-    --text-muted: #d0c4c8; /* Much lighter and more readable against dark background */
+    --text-muted: #5e4c52; /* Restored for light backgrounds */
+    --text-muted-light: #d0c4c8; /* Much lighter and more readable against dark background */
     --primary: #8b0000; /* Blood red */
     --primary-hover: #aa0000;
     --accent: #5c1844; /* Deep witch purple */
@@ -116,6 +117,7 @@ body::after {
 .text-gold { color: var(--gold); }
 .text-success { color: var(--success); }
 .text-muted { color: var(--text-muted); }
+.text-muted-light { color: var(--text-muted-light); }
 .text-small { font-size: 0.85rem; }
 .mt-2 { margin-top: 0.5rem; }
 .mt-3 { margin-top: 1rem; }
@@ -201,7 +203,7 @@ body::after {
 
 .exp-text {
     font-size: 0.8rem;
-    color: var(--text-muted);
+    color: var(--text-muted-light);
     text-align: right;
 }
 
@@ -209,7 +211,7 @@ body::after {
     font-size: 0.9rem;
     display: flex;
     justify-content: space-between;
-    color: var(--text-muted);
+    color: var(--text-muted-light);
 }
 
 /* Navigation */
@@ -297,7 +299,7 @@ body::after {
 }
 
 .section-header p {
-    color: var(--text-muted);
+    color: var(--text-muted-light);
 }
 
 /* Witch Cards (Collage Paper Style) */
@@ -439,7 +441,7 @@ input:focus, select:focus, textarea:focus {
 .btn-primary { background-color: var(--primary); border-color: #000; }
 .btn-accent { background-color: var(--accent); border-color: #000; }
 .btn-success { background-color: var(--success); border-color: #000; }
-.btn-secondary { background-color: var(--text-muted); border-color: #000; }
+.btn-secondary { background-color: var(--text-muted-light); border-color: #000; }
 .btn-danger { background-color: var(--danger); border-color: #000; }
 
 /* Modal */
@@ -474,7 +476,7 @@ input:focus, select:focus, textarea:focus {
     position: absolute;
     top: 1rem;
     right: 1.5rem;
-    color: var(--text-muted);
+    color: var(--text-muted-light);
     font-size: 1.5rem;
     font-weight: bold;
     cursor: pointer;

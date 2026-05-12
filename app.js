@@ -635,7 +635,7 @@ async function generateContent() {
       } else if (provider === "gemini") {
         // Gemini API integration
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${localSettings.apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${localSettings.apiKey}`,
           {
             method: "POST",
             headers: {
@@ -841,7 +841,7 @@ ${historyText}
       aiResponseText = data.choices[0].message.content;
     } else if (provider === "gemini") {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${localSettings.apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${localSettings.apiKey}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -973,7 +973,7 @@ async function runAutoMacro() {
       return data.choices[0].message.content;
     } else {
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${localSettings.apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${localSettings.apiKey}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
