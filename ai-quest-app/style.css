@@ -6,7 +6,7 @@
     --bg-panel: #2b2528;
     --bg-card: #f4ecd8; /* Old parchment paper */
     --text-main: #2a1f22; /* Dark ink */
-    --text-muted: #5e4c52;
+    --text-muted: #d0c4c8; /* Much lighter and more readable against dark background */
     --primary: #8b0000; /* Blood red */
     --primary-hover: #aa0000;
     --accent: #5c1844; /* Deep witch purple */
@@ -517,4 +517,84 @@ input:focus, select:focus, textarea:focus {
 #result-quest strong, #result-quest b {
   color: #ffd700 !important;
   text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .app-container {
+        flex-direction: column;
+        padding: 0;
+        gap: 0;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 4px double var(--border);
+        margin-right: 0;
+        padding: 1rem;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+    }
+
+    .brand {
+        flex-direction: row;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 1rem;
+    }
+
+    .brand h2 {
+        font-size: 1.5rem;
+    }
+
+    .user-stats {
+        margin: 0 0 1rem 0;
+        padding: 0 1rem;
+    }
+
+    .nav-menu {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .nav-item {
+        margin: 0;
+        padding: 0.5rem;
+        font-size: 0.9rem;
+        flex: 1 1 auto;
+        text-align: center;
+        border-left: none;
+        border-bottom: 2px solid transparent;
+    }
+
+    .nav-item.active {
+        background: rgba(255, 215, 0, 0.1);
+        border-left: none;
+        border-bottom: 2px solid var(--gold);
+        color: var(--gold);
+    }
+
+    .nav-item i {
+        margin-right: 5px;
+        font-size: 1rem;
+    }
+
+    .main-content {
+        padding: 1rem;
+    }
+
+    .hero-content {
+        padding: 1.5rem;
+    }
+
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+
+    .section-header {
+        font-size: 1.5rem;
+    }
 }

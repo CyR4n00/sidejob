@@ -320,6 +320,7 @@ function updateUI() {
   // Update PRO UI
   const planStatusEl = document.getElementById("current-plan-status");
   const upgradeBtn = document.getElementById("btn-upgrade-pro");
+  const cancelSection = document.getElementById("pro-cancellation-section");
 
   // Unlock Community Features for PRO users
   const communityButtons = document.querySelectorAll("#community-ranking .btn");
@@ -339,7 +340,13 @@ function updateUI() {
         upgradeBtn.style.background = "#333";
         upgradeBtn.style.color = "#888";
       }
+      if (cancelSection) {
+        cancelSection.style.display = "block";
+      }
     } else {
+      if (cancelSection) {
+        cancelSection.style.display = "none";
+      }
       planStatusEl.textContent = "無料見習いプラン";
       planStatusEl.className = "text-white";
     }
@@ -1173,6 +1180,31 @@ function setupEventListeners() {
         roleMsg.textContent = "属性を保存し、クエストを更新しました！";
         roleMsg.style.display = "block";
         setTimeout(() => { roleMsg.style.display = "none"; }, 3000);
+      }
+    });
+  }
+
+  // Cancel Button Event
+  const btnCancelPro = document.getElementById("btn-cancel-pro");
+  if (btnCancelPro) {
+    btnCancelPro.addEventListener("click", async () => {
+      if (!userState.is_pro) return;
+
+      if (confirm("本当にPROプランを解約しますか？\n解約後も現在の請求期間の終了日まではPRO機能をご利用いただけます。（※デモのため即時解約されます）")) {
+        userState.is_pro = false;
+        await saveState();
+        alert("PROプランを解約しました。無料見習いプランに戻ります。");
+
+        // Reset the upgrade button styling so it can be clicked again
+        const upgradeBtn = document.getElementById("btn-upgrade-pro");
+        if (upgradeBtn) {
+          upgradeBtn.innerHTML = 'PROプランにアップグレード <small>(月額980円)</small>';
+          upgradeBtn.disabled = false;
+          upgradeBtn.style.background = "linear-gradient(135deg, #FFD700 0%, #FFA500 100%)";
+          upgradeBtn.style.color = "#000";
+        }
+
+        updateUI();
       }
     });
   }
