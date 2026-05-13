@@ -310,6 +310,48 @@ function updateUI() {
   }
   document.getElementById("user-title").textContent = currentTitle;
 
+  // Render personal ranking
+  const personalRankingList = document.getElementById("personal-ranking-list");
+  if (personalRankingList) {
+    personalRankingList.innerHTML = "";
+    if (userState.questHistory && userState.questHistory.length > 0) {
+      // Sort by EXP gained descending
+      const sortedHistory = [...userState.questHistory].sort((a, b) => b.expGained - a.expGained);
+      sortedHistory.forEach((quest, index) => {
+        const dateStr = new Date(quest.date).toLocaleDateString();
+
+        let rankColor = "text-muted";
+        let bgColor = "rgba(255, 255, 255, 0.05)";
+        let borderColor = "grey";
+
+        if (index === 0) { rankColor = "text-gold"; bgColor = "rgba(255, 215, 0, 0.1)"; borderColor = "gold"; }
+        else if (index === 1) { rankColor = "text-secondary"; bgColor = "rgba(192, 192, 192, 0.1)"; borderColor = "silver"; }
+        else if (index === 2) { rankColor = "text-warning"; bgColor = "rgba(205, 127, 50, 0.1)"; borderColor = "#cd7f32"; }
+
+        personalRankingList.innerHTML += `
+          <div class="card mb-2 p-2 d-flex flex-column" style="background: ${bgColor}; border-left: 4px solid ${borderColor};">
+            <div class="d-flex flex-row align-items-center mb-2">
+              <div class="h2 mb-0 me-3 ms-2 ${rankColor}">${index + 1}</div>
+              <div style="flex-grow: 1;">
+                <h4 class="h6 mb-0">${quest.keyword || "不明なクエスト"}</h4>
+                <small class="text-muted-light">${dateStr}</small>
+              </div>
+              <div class="text-end">
+                <div class="fw-bold text-accent">${quest.impressions} PV</div>
+                <small>EXP: ${quest.expGained}</small>
+              </div>
+            </div>
+            ${quest.postContent ? `<div class="mt-2 p-2" style="background: rgba(0,0,0,0.2); border-radius: 4px; font-size: 0.85em;"><strong class="text-muted-light">投稿内容:</strong><br>${quest.postContent}</div>` : ''}
+            ${quest.macroUsed ? `<div class="mt-2 p-2" style="background: rgba(0,0,0,0.2); border-radius: 4px; font-size: 0.85em;"><strong class="text-muted-light">使用マクロ:</strong><br>${quest.macroUsed}</div>` : ''}
+          </div>
+        `;
+      });
+    } else {
+      personalRankingList.innerHTML = `<p class="text-muted-light text-center my-4">まだ報告履歴がありません。ギルドに成果を報告しましょう。</p>`;
+    }
+  }
+
+
   const pastDataEl = document.getElementById("macro-past-data");
   // Only set this once on load to prevent overwriting user's intentional clear
   if (pastDataEl && userState.personalData && pastDataEl.dataset.loaded !== "true") {
@@ -1101,6 +1143,10 @@ async function submitReport() {
   const imp = parseInt(document.getElementById("input-impressions").value) || 0;
   const conv =
     parseInt(document.getElementById("input-conversions").value) || 0;
+
+  const postContent = document.getElementById("input-post-content")?.value || "";
+  const macroUsed = document.getElementById("input-macro-used")?.value || "";
+
   const msgBox = document.getElementById("report-result-message");
 
   if (imp === 0 && conv === 0) {
@@ -1130,6 +1176,8 @@ async function submitReport() {
     impressions: imp,
     conversions: conv,
     expGained: expGained,
+    postContent: postContent,
+    macroUsed: macroUsed
   });
 
   // Check level up & reward medals (50 per level)
@@ -1154,6 +1202,8 @@ async function submitReport() {
   document.getElementById("input-keyword").value = "";
   document.getElementById("input-impressions").value = "";
   document.getElementById("input-conversions").value = "";
+  if(document.getElementById("input-post-content")) document.getElementById("input-post-content").value = "";
+  if(document.getElementById("input-macro-used")) document.getElementById("input-macro-used").value = "";
 
   msgBox.innerHTML = `<strong>${expGained} EXP</strong> を獲得しました！${levelUpMsg}`;
   msgBox.className = "mt-3 text-success text-center";

@@ -395,6 +395,14 @@
               />
             </div>
             <div class="form-group">
+              <label for="input-post-content">📝 投稿したコンテンツ (AI分析用)</label>
+              <textarea id="input-post-content" rows="4" placeholder="実際にSNS等に投稿した本文を貼り付けてください..."></textarea>
+            </div>
+            <div class="form-group">
+              <label for="input-macro-used">⚙️ 使用した錬成陣・マクロ (AI分析用)</label>
+              <textarea id="input-macro-used" rows="3" placeholder="使用したプロンプトや思考プロセスを入力..."></textarea>
+            </div>
+            <div class="form-group">
               <label for="input-conversions"
                 >💰 獲得したクリック数 / コンバージョン数</label
               >
@@ -432,47 +440,12 @@
             <!-- 外部評価（PV・いいね）ランキング -->
             <div style="flex: 1; min-width: 300px; margin-bottom: 20px;">
               <div class="glass-panel h-100">
-                <h3 class="mb-3 text-gold"><i class="fa-solid fa-fire"></i> 成果スコア・ランキング（今月）</h3>
-                <p class="text-muted-light small mb-3">ユーザーの自己申告に基づく、SNSやブログでの影響力ランキングです。今どのジャンルが伸びているか分析できます。</p>
+                <h3 class="mb-3 text-gold"><i class="fa-solid fa-fire"></i> 個人の成果履歴（実績）</h3>
+                <p class="text-muted-light small mb-3">これまでに「成果報告ギルド」で報告したあなたのクエスト実績履歴です。</p>
 
-                <div class="ranking-list" style="max-height: 400px; overflow-y: auto;">
-                  <div class="card mb-2 p-2 d-flex flex-row align-items-center" style="background: rgba(255, 215, 0, 0.1); border-left: 4px solid gold;">
-                    <div class="h2 mb-0 me-3 ms-2 text-gold">1</div>
-                    <div style="flex-grow: 1;">
-                      <h4 class="h6 mb-0">賢者アルティメット</h4>
-                      <small class="text-muted-light">ジャンル: AI活用術</small>
-                    </div>
-                    <div class="text-end">
-                      <div class="fw-bold text-accent">124,500 PV</div>
-                      <small>Score: 9,850</small>
-                    </div>
-                  </div>
-
-                  <div class="card mb-2 p-2 d-flex flex-row align-items-center" style="background: rgba(192, 192, 192, 0.1); border-left: 4px solid silver;">
-                    <div class="h2 mb-0 me-3 ms-2 text-secondary">2</div>
-                    <div style="flex-grow: 1;">
-                      <h4 class="h6 mb-0">魔女見習いリナ</h4>
-                      <small class="text-muted-light">ジャンル: 美容・コスメ</small>
-                    </div>
-                    <div class="text-end">
-                      <div class="fw-bold text-accent">89,200 PV</div>
-                      <small>Score: 7,200</small>
-                    </div>
-                  </div>
-
-                  <div class="card mb-2 p-2 d-flex flex-row align-items-center" style="background: rgba(205, 127, 50, 0.1); border-left: 4px solid #cd7f32;">
-                    <div class="h2 mb-0 me-3 ms-2" style="color: #cd7f32;">3</div>
-                    <div style="flex-grow: 1;">
-                      <h4 class="h6 mb-0">ブログ錬金術師</h4>
-                      <small class="text-muted-light">ジャンル: 副業・投資</small>
-                    </div>
-                    <div class="text-end">
-                      <div class="fw-bold text-accent">54,100 PV</div>
-                      <small>Score: 5,400</small>
-                    </div>
-                  </div>
+                <div class="ranking-list" id="personal-ranking-list" style="max-height: 400px; overflow-y: auto;">
+                  <!-- Dynamic JS content will be injected here -->
                 </div>
-                <button class="btn btn-primary full-width mt-3" disabled><i class="fa-solid fa-lock"></i> PRO機能: 詳細な分析を見る</button>
               </div>
             </div>
 
