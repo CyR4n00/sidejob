@@ -677,7 +677,7 @@ async function generateContent() {
       } else if (provider === "gemini") {
         // Gemini API integration
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${localSettings.apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${localSettings.apiKey}`,
           {
             method: "POST",
             headers: {
@@ -693,8 +693,7 @@ async function generateContent() {
           },
         );
 
-        if (!response.ok)
-          throw new Error("Gemini APIエラー。キーが正しいか確認してください。");
+        if (!response.ok) throw new Error("Gemini APIエラー: " + JSON.stringify(await response.json()));
         const data = await response.json();
         if (data.candidates && data.candidates[0].content.parts[0].text) {
           generatedText = data.candidates[0].content.parts[0].text;
@@ -883,7 +882,7 @@ ${historyText}
       aiResponseText = data.choices[0].message.content;
     } else if (provider === "gemini") {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${localSettings.apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${localSettings.apiKey}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -893,7 +892,7 @@ ${historyText}
         },
       );
 
-      if (!response.ok) throw new Error("Gemini APIエラー");
+      if (!response.ok) throw new Error("Gemini APIエラー: " + JSON.stringify(await response.json()));
       const data = await response.json();
       aiResponseText = data.candidates[0].content.parts[0].text;
     }
@@ -1010,19 +1009,19 @@ async function runAutoMacro() {
           temperature: 0.7,
         }),
       });
-      if (!res.ok) throw new Error("API Error");
+      if (!res.ok) { const errData = await res.json(); throw new Error("API Error: " + JSON.stringify(errData)); }
       const data = await res.json();
       return data.choices[0].message.content;
     } else {
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${localSettings.apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${localSettings.apiKey}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contents: [{ parts: [{ text: aiPrompt }] }] }),
         },
       );
-      if (!res.ok) throw new Error("API Error");
+      if (!res.ok) { const errData = await res.json(); throw new Error("API Error: " + JSON.stringify(errData)); }
       const data = await res.json();
       return data.candidates[0].content.parts[0].text;
     }
