@@ -462,13 +462,20 @@ function setupNavigation() {
   navItems.forEach((item) => {
     item.addEventListener("click", (e) => {
       e.preventDefault();
+      const targetId = item.getAttribute("data-target");
+
+      // PRO feature locks
+      if (!userState.is_pro && (targetId === "magic-eye-feature" || targetId === "auto-macro-feature" || targetId === "community-ranking")) {
+         showAlert("PRO版専用機能", "この機能はPROプラン（月額980円）にアップグレードすると解放されます。\n\n【解放される機能】\n・魔眼（AI分析）\n・自動マクロ（連続錬成）\n・ランキング共有と分析");
+         return; // Stop navigation
+      }
+
       // Remove active classes
       navItems.forEach((nav) => nav.classList.remove("active"));
       sections.forEach((sec) => sec.classList.remove("active"));
 
       // Add active class
       item.classList.add("active");
-      const targetId = item.getAttribute("data-target");
       document.getElementById(targetId).classList.add("active");
     });
   });
@@ -807,6 +814,10 @@ async function rollGacha() {
 
 // --- Magic Eye (Analytics) ---
 async function activateMagicEye() {
+  if (!userState.is_pro) {
+    showAlert("PRO版専用機能", "魔眼（分析）はPROプラン専用機能です。アップグレードして、過去の成功パターンをAIに分析させましょう！");
+    return;
+  }
   if (userState.questHistory.length < 3) {
     showAlert(
       "データ不足",
@@ -933,8 +944,8 @@ ${historyText}
 
 // --- Auto Macro (Node Automation) ---
 async function runAutoMacro() {
-  if (!userState.is_pro && userState.stamina < 2) {
-    showAlert("スタミナ不足", "自動錬成陣の起動にはスタミナが2必要です。PROプランなら無制限に使用できます。");
+  if (!userState.is_pro) {
+    showAlert("PRO版専用機能", "自動マクロ機能はPROプラン専用です。アップグレードして、プロンプトの連続実行とパーソナライズを自動化しましょう！");
     return;
   }
   if (!localSettings.apiKey || localSettings.apiKey === "********") {
