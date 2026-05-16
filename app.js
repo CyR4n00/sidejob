@@ -151,6 +151,22 @@ const DAILY_QUESTS_BY_ROLE = {
 
 // --- Initialization ---
 document.addEventListener("DOMContentLoaded", async () => {
+  // Developer Bypass: Click the title 5 times to unlock PRO mode for testing
+  let clickCount = 0;
+  const brandTitles = document.querySelectorAll(".brand h2");
+  brandTitles.forEach(title => {
+    title.addEventListener("click", async () => {
+      clickCount++;
+      if (clickCount === 5) {
+        userState.is_pro = true;
+        await saveState();
+        updateUI();
+        showAlert("開発者モード解放", "全機能のロックを解除し、PROモードを有効化しました。テストが完了したらリセットしてください。");
+        clickCount = 0;
+      }
+    });
+  });
+
   // Check initial auth session with a timeout fallback
   try {
     const sessionPromise = supabaseClient.auth.getSession();
