@@ -496,6 +496,28 @@ function setupNavigation() {
     });
   });
 
+  // Mobile Menu Modal Logic
+  const mobileMenuToggle = document.getElementById("mobile-menu-toggle");
+  const mobileNavMenu = document.getElementById("mobile-nav-menu");
+  const mobileMenuClose = document.getElementById("btn-close-mobile-menu");
+
+  if (mobileMenuToggle && mobileNavMenu && mobileMenuClose) {
+    mobileMenuToggle.addEventListener("click", () => {
+      mobileNavMenu.classList.add("menu-open");
+    });
+
+    mobileMenuClose.addEventListener("click", () => {
+      mobileNavMenu.classList.remove("menu-open");
+    });
+
+    // Close menu when a navigation item is clicked
+    navItems.forEach((item) => {
+      item.addEventListener("click", () => {
+        mobileNavMenu.classList.remove("menu-open");
+      });
+    });
+  }
+
   // Alert Modal Logic
   const alertModal = document.getElementById("alert-modal");
   const closeAlertBtns = alertModal.querySelectorAll(

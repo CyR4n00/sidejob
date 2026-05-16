@@ -156,7 +156,18 @@
           </div>
         </div>
 
-        <nav class="nav-menu">
+        <!-- Mobile Menu Toggle -->
+        <button id="mobile-menu-toggle" class="btn btn-secondary" style="display: none; background: transparent; border: none; font-size: 1.5rem; color: var(--gold); padding: 0.5rem; box-shadow: none;">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <nav class="nav-menu" id="mobile-nav-menu">
+          <div id="mobile-menu-close-container" style="display: none; text-align: right; padding: 1rem;">
+             <button id="btn-close-mobile-menu" class="btn btn-secondary" style="background: transparent; border: none; font-size: 1.5rem; color: var(--text-muted); box-shadow: none;">
+               <i class="fa-solid fa-xmark"></i>
+             </button>
+          </div>
+
           <a href="#" class="nav-item active" data-target="quest-board"
             ><i class="fa-solid fa-scroll"></i> <span>クエストボード</span></a
           >
