@@ -329,9 +329,7 @@
                 />
               </div>
               <div class="form-group">
-                <label for="affiliate-category"
-                  >アフィリエイト・カテゴリー</label
-                >
+                <label for="affiliate-category">目的・カテゴリー (アフィリ/SNS)</label>
                 <select id="affiliate-category">
                   <option value="指定なし">指定なし (一般)</option>
                   <option value="金融・投資">金融・投資 (クレカ/証券)</option>
@@ -339,6 +337,9 @@
                   <option value="美容・健康">美容・健康・ダイエット</option>
                   <option value="キャリア・転職">キャリア・転職・副業</option>
                   <option value="アダルト・恋愛">
+                  <option value="SNS日常投稿">SNSマーケティング・日常発信</option>
+                  <option value="インフルエンサーPR">インフルエンサーPR・レビュー</option>
+                  <option value="コミュニティ形成">コミュニティ形成・エンゲージメント</option>
                     アダルト・恋愛・マッチング
                   </option>
                 </select>
@@ -348,6 +349,7 @@
                 <select id="content-platform">
                   <option value="ブログ記事">ブログ記事</option>
                   <option value="X (Twitter)">X (Twitter) ポスト</option>
+                  <option value="Threads (スレッズ)">Threads (スレッズ) ポスト</option>
                 </select>
               </div>
               <div
@@ -770,6 +772,9 @@
                   <option value="美容・健康">美容・健康・ダイエット</option>
                   <option value="キャリア・転職">キャリア・転職・副業</option>
                   <option value="アダルト・恋愛">アダルト・恋愛・マッチング</option>
+                  <option value="SNS日常投稿">SNSマーケティング・日常発信</option>
+                  <option value="インフルエンサーPR">インフルエンサーPR・レビュー</option>
+                  <option value="コミュニティ形成">コミュニティ形成・エンゲージメント</option>
                 </optgroup>
               </select>
             </div>
@@ -788,8 +793,8 @@
 
             <div class="form-group mt-3">
               <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="macro-step-mode">
-                <label class="form-check-label" for="macro-step-mode"><i class="fa-solid fa-pause text-accent"></i> ステップ実行（リサーチ後に一時停止して編集する）</label>
+                <input class="form-check-input" type="checkbox" id="macro-step-mode" checked>
+                <label class="form-check-label" for="macro-step-mode"><i class="fa-solid fa-pause text-accent"></i> インタラクティブ実行（深掘りリサーチ前にAIから質問・確認を受け、回答をもとに記事を生成する）</label>
               </div>
             </div>
 
@@ -818,12 +823,16 @@
                 <i class="fa-solid fa-crosshairs"></i> Node 1: キーワード抽出
               </h4>
               <p class="text-small text-muted-light mb-2">
-                指定カテゴリから「今バズりやすい」ニッチなキーワードをAIが考案します。
+                指定カテゴリからキーワードを考案し、深掘りリサーチのための質問を作成します。
               </p>
               <div class="node-output text-small" style="display: none"></div>
               <!-- Added text area for manual editing of research -->
-              <textarea id="node-2-edit" class="mt-2" style="display: none; height: 100px;" placeholder="AIのリサーチ結果を編集できます"></textarea>
-              <button id="btn-resume-macro" class="btn btn-success btn-sm mt-2" style="display: none;">次へ進む（記事執筆） <i class="fa-solid fa-arrow-right"></i></button>
+              <div id="node-1-question-area" style="display: none; margin-top: 10px;">
+                <p class="text-accent text-small"><strong>AIからの質問・確認:</strong></p>
+                <div id="node-1-question-text" class="mb-2" style="padding: 10px; background: rgba(0,0,0,0.2); border-left: 3px solid var(--accent);"></div>
+                <textarea id="node-2-edit" class="mt-2 w-100" style="height: 100px; padding: 10px;" placeholder="AIの質問に回答したり、追加の指示を入力してください..."></textarea>
+                <button id="btn-resume-macro" class="btn btn-success w-100 mt-2">回答を送信して深掘り・記事執筆へ <i class="fa-solid fa-arrow-right"></i></button>
+              </div>
             </div>
 
             <!-- Arrow 1 -->

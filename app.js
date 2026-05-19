@@ -562,6 +562,7 @@ function generateStrategyRecommendation() {
   const platforms = [
     "Instagramのカルーセル投稿",
     "X(Twitter)のツリー投稿",
+    "Threads(スレッズ)の連続投稿",
     "TikTokのショート動画",
     "noteの長文記事",
   ];

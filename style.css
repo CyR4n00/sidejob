@@ -438,9 +438,9 @@ input:focus, select:focus, textarea:focus {
 .btn.full-width { width: 100%; }
 
 /* Color overrides for buttons */
-.btn-primary { background-color: var(--primary); border-color: #000; }
+.btn-primary { background-color: var(--primary); border: none; color: #fff; }
 .btn-accent { background-color: var(--accent); border-color: #000; }
-.btn-success { background-color: var(--success); border-color: #000; }
+.btn-success { background-color: var(--success); border: none; color: #fff; }
 .btn-secondary { background-color: var(--text-muted-light); border-color: #000; }
 .btn-danger { background-color: var(--danger); border-color: #000; }
 
@@ -523,6 +523,10 @@ input:focus, select:focus, textarea:focus {
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
+    body::before, body::after {
+        display: none !important;
+    }
+
     .app-container {
         flex-direction: column;
         padding: 0;
