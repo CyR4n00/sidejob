@@ -1126,8 +1126,20 @@ async function runAutoMacro() {
       btn.innerHTML = '<i class="fa-solid fa-pause"></i> リサーチ完了（一時停止中）';
       outputs[1].style.display = "none";
 
+      const questionArea = document.getElementById("node-1-question-area");
       const editArea = document.getElementById("node-2-edit");
       const resumeBtn = document.getElementById("btn-resume-macro");
+
+      if (questionArea) {
+          questionArea.style.display = "block"; // 質問エリア全体を表示
+      }
+
+      // AIからの質問・確認文の表示を調整 (リサーチ結果を編集するという意図に合わせる)
+      const questionText = document.getElementById("node-1-question-text");
+      if (questionText) {
+        questionText.innerHTML = "リサーチが完了しました。内容を確認・編集し、よろしければ「回答を送信して深掘り・記事執筆へ」をクリックしてください。";
+      }
+
       editArea.style.display = "block";
       editArea.value = research;
       resumeBtn.style.display = "inline-block";
@@ -1137,6 +1149,9 @@ async function runAutoMacro() {
           research = editArea.value; // Get manually edited research
           editArea.style.display = "none";
           resumeBtn.style.display = "none";
+          if (questionArea) {
+              questionArea.style.display = "none"; // 質問エリア全体を非表示に戻す
+          }
           outputs[1].style.display = "block";
           outputs[1].innerHTML = `<span class="text-gold font-bold">リサーチ完了(編集済):</span><br>${research.replace(/\n/g, "<br>")}`;
           btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 錬成陣 稼働中...';
